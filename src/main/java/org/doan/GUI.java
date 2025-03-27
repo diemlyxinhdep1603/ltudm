@@ -21,7 +21,7 @@ public class GUI extends JFrame {
 
     public GUI() {
         setTitle("Tổng Hợp Review Sản Phẩm");
-        setSize(963, 550);
+        setSize(1333, 664);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         getContentPane().setLayout(null);
@@ -29,7 +29,7 @@ public class GUI extends JFrame {
         lblTieuDe = new JLabel("TỔNG HỢP REVIEW SẢN PHẨM");
         lblTieuDe.setFont(new Font("Times New Roman", Font.BOLD, 20));
         lblTieuDe.setForeground(Color.BLUE);
-        lblTieuDe.setBounds(318, 10, 350, 31);
+        lblTieuDe.setBounds(471, 8, 350, 31);
         getContentPane().add(lblTieuDe);
 
         lblThongTinSanPham = new JLabel("Nhập tên sản phẩm :");
@@ -38,7 +38,7 @@ public class GUI extends JFrame {
         getContentPane().add(lblThongTinSanPham);
 
         textInfor = new JTextField();
-        textInfor.setBounds(242, 49, 370, 25);
+        textInfor.setBounds(242, 49, 709, 25);
         getContentPane().add(textInfor);
         textInfor.setColumns(10);
 
@@ -46,12 +46,12 @@ public class GUI extends JFrame {
         btnNewButton.setFont(new Font("Arial", Font.BOLD, 14));
         btnNewButton.setBackground(Color.DARK_GRAY);
         btnNewButton.setForeground(Color.WHITE);
-        btnNewButton.setBounds(755, 45, 120, 30);
+        btnNewButton.setBounds(1029, 45, 120, 30);
         btnNewButton.setFocusPainted(false);
         getContentPane().add(btnNewButton);
 
         panelSanPham = new JPanel();
-        panelSanPham.setBounds(10, 86, 929, 280);
+        panelSanPham.setBounds(10, 86, 1299, 354);
         panelSanPham.setBorder(new LineBorder(Color.BLACK, 2));
         getContentPane().add(panelSanPham);
         panelSanPham.setLayout(new BorderLayout());
@@ -90,13 +90,13 @@ public class GUI extends JFrame {
         btnOverView.setFont(new Font("Arial", Font.BOLD, 14));
         btnOverView.setBackground(Color.DARK_GRAY);
         btnOverView.setForeground(Color.WHITE);
-        btnOverView.setBounds(399, 376, 120, 30);
+        btnOverView.setBounds(581, 450, 120, 30);
         btnOverView.setFocusPainted(false);
         getContentPane().add(btnOverView);
 
         JLabel lblOverView = new JLabel("");
         lblOverView.setBorder(new LineBorder(Color.BLACK, 1));
-        lblOverView.setBounds(10, 420, 929, 80);
+        lblOverView.setBounds(10, 490, 1299, 96);
         getContentPane().add(lblOverView);
 
         reviewListModel = new DefaultListModel<>();
