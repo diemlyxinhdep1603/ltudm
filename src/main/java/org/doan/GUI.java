@@ -54,7 +54,7 @@ public class GUI extends JFrame {
 
         reviewListModel = new DefaultListModel<>();
         reviewList = new JList<>(reviewListModel);
-        reviewList.setFont(new Font("Arial", Font.PLAIN, 14));
+        reviewList.setFont(new Font("Roboto", Font.PLAIN, 14));
         JScrollPane scrollPane = new JScrollPane(reviewList);
         centerPanel.add(detailsPanel, BorderLayout.NORTH);
         centerPanel.add(scrollPane, BorderLayout.CENTER);

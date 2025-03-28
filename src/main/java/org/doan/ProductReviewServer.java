@@ -115,7 +115,7 @@ public class ProductReviewServer {
                 }
                 String content = review.getString("content");
                 int rating = review.getInt("rating");
-                response.append(fullName).append(": ").append(content).append(" (").append(rating).append(");");
+                response.append(fullName).append("| ").append(rating).append(" (").append(content).append(");");
             }
             return response.toString();
 
