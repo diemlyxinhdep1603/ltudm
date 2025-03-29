@@ -1,11 +1,9 @@
-package org.doan;
+package GUI;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-public class GUI extends JFrame {
+public class ProductReviewGUI extends JFrame {
     private DefaultListModel<String> reviewListModel;
     private JLabel lblTieuDe;
     private JLabel lblThongTinSanPham;
@@ -15,11 +13,12 @@ public class GUI extends JFrame {
     private JButton btnTiki;
     private JButton btnShoppe;
     private JButton btnLazada;
-    private JButton btnGia;
+
+   // private JButton btnGia;
     private JTable table;
     private JScrollPane tableScrollPane;
 
-    public GUI() {
+    public ProductReviewGUI() {
         setTitle("Tổng Hợp Review Sản Phẩm");
         setSize(1333, 664);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -65,19 +64,22 @@ public class GUI extends JFrame {
         formatButton(btnTiki);
         panelButton.add(btnTiki);
 
-        btnShoppe = new JButton("SHOPEE");
+        btnShoppe = new JButton("SENDO");
         formatButton(btnShoppe);
         panelButton.add(btnShoppe);
 
-        btnLazada = new JButton("LAZADA");
+        btnLazada = new JButton("AMAZON");
         formatButton(btnLazada);
         panelButton.add(btnLazada);
 
+        /*
         btnGia = new JButton("BIẾN ĐỘNG GIÁ");
         formatButton(btnGia);
         panelButton.add(btnGia);
 
-        String[] columnNames = {"ID Reviewer", "Rate", "Comments", "Ảnh", "Video"};
+         */
+
+        String[] columnNames = {"Name Reviewer", "Rate", "Comments", "Ảnh", "Video"};
         Object[][] data = {};
         table = new JTable(data, columnNames);
         table.setGridColor(Color.BLACK);
@@ -111,6 +113,6 @@ public class GUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(GUI::new);
+        SwingUtilities.invokeLater(ProductReviewGUI::new);
     }
 }
