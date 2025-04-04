@@ -4,15 +4,16 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
+import java.util.Map;
 
 public class ProductReviewServer {
     private int port;
-    private getReviewTIKIProduct tikiProductHelper;  // Object to handle TIKI product reviews
+    private getReviewTIKIProduct tiki;  // Object to handle TIKI product reviews
 
     // Constructor
     public ProductReviewServer(int port) {
         this.port = port;
-        this.tikiProductHelper = new getReviewTIKIProduct();  // Initialize the helper class
+        this.tiki = new getReviewTIKIProduct();  // Initialize the helper class
     }
 
     // Start server and create socket for each client
@@ -58,17 +59,28 @@ public class ProductReviewServer {
 
     // Xử lý yêu cầu tìm kiếm sản phẩm
     private String processProductRequest(String productName) {
-        List<String> suggestions = tikiProductHelper.searchSimilarProducts(productName);
+        // Try to get the reviews based on the exact name first
+        String productReviews = tiki.getProductReviews(productName);
 
-        if (suggestions.isEmpty()) {
-            return "Không tìm thấy sản phầm nào cho'" + productName + "'. Gợi ý tên sản phẩm tương tự:\n" + String.join(", ", suggestions);
-        } else {
-            StringBuilder response = new StringBuilder();
-            String firstProduct = suggestions.get(0);  // Get the first product from suggestions
-            response.append("Product info:\n").append(tikiProductHelper.getProductInfo(firstProduct)).append("\n");
-            response.append("Product reviews:\n").append(tikiProductHelper.getProductReviews(firstProduct));
-            return response.toString();
+        // If no reviews found, return suggestions and check reviews of suggested products
+        if (productReviews.contains("Không tìm thấy sản phẩm")) {
+            Map<String, String> suggestions = tiki.getSuggestedProducts(productName);
+            if (!suggestions.isEmpty()) {
+                StringBuilder suggestionMessage = new StringBuilder("Không tìm thấy sản phẩm. Các gợi ý gần đúng:\n");
+                for (Map.Entry<String, String> entry : suggestions.entrySet()) {
+                    suggestionMessage.append(entry.getKey()).append("=").append(entry.getValue()).append("\n");
+
+                    // Now check reviews for the suggested product
+                    String suggestionReviews = tiki.getProductReviewsFromSuggestion(entry.getValue());
+                    suggestionMessage.append("Đánh giá cho ").append(entry.getKey()).append(":\n").append(suggestionReviews).append("\n");
+                }
+                return suggestionMessage.toString();
+            } else {
+                return "Không tìm thấy sản phẩm và cũng không có gợi ý nào.";
+            }
         }
+
+        return "Sản phẩm tìm thấy: " + productReviews;
     }
 
     public static void main(String[] args) {
