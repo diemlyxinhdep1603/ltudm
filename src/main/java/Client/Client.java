@@ -1,14 +1,14 @@
-package org.doan;
+package Client;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class TestClient {
+public class Client {
     private String host;
     private int port;
 
-    public TestClient(String host, int port) {
+    public Client(String host, int port) {
         this.host = host;
         this.port = port;
     }
@@ -51,7 +51,7 @@ public class TestClient {
     }
 
     public static void main(String[] args) {
-        TestClient client = new TestClient("localhost", 12345);
+        Client client = new Client("localhost", 1234);
         client.start();
     }
 }
