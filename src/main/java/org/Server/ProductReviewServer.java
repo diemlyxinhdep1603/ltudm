@@ -3,16 +3,18 @@ package org.Server;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
+import java.util.Map;
 
 public class ProductReviewServer {
     private int port;
-    private getReviewTIKIProduct tikiProductHelper;  // Object to handle TIKI product reviews
+    private getReviewTIKIProduct tiki;  // Object to handle TIKI product reviews
+    private String currentPlatform; // Track which platform to use for reviews
 
     // Constructor
     public ProductReviewServer(int port) {
         this.port = port;
-        this.tikiProductHelper = new getReviewTIKIProduct();  // Initialize the helper class
+        this.tiki = new getReviewTIKIProduct();  // Initialize the helper classes
+        this.currentPlatform = "TIKI"; // Default platform
     }
 
     // Start server and create socket for each client
@@ -33,15 +35,50 @@ public class ProductReviewServer {
         System.out.println("Kết nối từ khách hàng: " + socket.getRemoteSocketAddress());
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true)) {
-            String productName;
-            while ((productName = reader.readLine()) != null) {
-                System.out.println("Server nhận: " + productName);
-                if (productName.equalsIgnoreCase("bye")) {
+            String request;
+            while ((request = reader.readLine()) != null) {
+                System.out.println("Server nhận: " + request);
+                if (request.equalsIgnoreCase("bye")) {
                     System.out.println("Khách hàng yêu cầu đóng kết nối.");
                     break;
                 }
-                // Process client request
-                String response = processProductRequest(productName);
+
+                // Check if the request is changing platforms
+                if (request.startsWith("PLATFORM:")) {
+                    String platform = request.substring(9).trim();
+
+                    // Kiểm tra tính hợp lệ của platform
+                    if (Valid_Input_Data.isValidPlatform(platform)) {
+                        currentPlatform = platform;
+                        writer.println("Đã chuyển sang nền tảng: " + currentPlatform);
+                        writer.println("<END>");
+                        continue;
+                    } else {
+                        // Lấy thông báo lỗi chi tiết
+                        String errorMessage = Valid_Input_Data.getLastErrorMessage();
+                        if (errorMessage.isEmpty()) {
+                            errorMessage = "Nền tảng không hợp lệ. Chỉ chấp nhận TIKI, SENDO, AMAZON";
+                        }
+                        writer.println("Lỗi: " + errorMessage);
+                        writer.println("<END>");
+                        continue;
+                    }
+                }
+
+                // Process client request for product search
+                // Kiểm tra tính hợp lệ của từ khóa tìm kiếm
+                if (!Valid_Input_Data.isValidKeyword(request)) {
+                    // Lấy thông báo lỗi chi tiết
+                    String errorMessage = Valid_Input_Data.getLastErrorMessage();
+                    if (errorMessage.isEmpty()) {
+                        errorMessage = "Từ khóa tìm kiếm không hợp lệ";
+                    }
+                    writer.println("Lỗi: " + errorMessage);
+                    writer.println("<END>");
+                    continue;
+                }
+
+                String response = processProductRequest(request);
                 writer.println(response);
                 writer.println("<END>"); // Thông báo kết thúc gửi dữ liệu
             }
@@ -56,19 +93,57 @@ public class ProductReviewServer {
         }
     }
 
-    // Xử lý yêu cầu tìm kiếm sản phẩm
+    // Xử lý yêu cầu tìm kiếm sản phẩm dựa trên platform hiện tại
     private String processProductRequest(String productName) {
-        List<String> suggestions = tikiProductHelper.searchSimilarProducts(productName);
-
-        if (suggestions.isEmpty()) {
-            return "Không tìm thấy sản phầm nào cho'" + productName + "'. Gợi ý tên sản phẩm tương tự:\n" + String.join(", ", suggestions);
-        } else {
-            StringBuilder response = new StringBuilder();
-            String firstProduct = suggestions.get(0);  // Get the first product from suggestions
-            response.append("Product info:\n").append(tikiProductHelper.getProductInfo(firstProduct)).append("\n");
-            response.append("Product reviews:\n").append(tikiProductHelper.getProductReviews(firstProduct));
-            return response.toString();
+        switch (currentPlatform) {
+            case "TIKI":
+                return processTikiProductRequest(productName);
+            case "SENDO":
+                return processSendoProductRequest(productName);
+            case "AMAZON":
+                return processAmazonProductRequest(productName);
+            default:
+                return "Lỗi: Nền tảng không được hỗ trợ: " + currentPlatform;
         }
+    }
+
+    // Xử lý yêu cầu tìm kiếm sản phẩm trên Tiki
+    private String processTikiProductRequest(String productName) {
+        try {
+            // Cố gắng lấy reviews dựa trên tên chính xác trước
+            String productReviews = tiki.getProductReviews(productName);
+
+            // Nếu không tìm thấy sản phẩm nào, thử lấy gợi ý
+            if (productReviews.contains("Không tìm thấy sản phẩm")) {
+                Map<String, String> suggestions = tiki.getSuggestedProducts(productName);
+                if (!suggestions.isEmpty()) {
+                    // Nếu có gợi ý, lấy gợi ý đầu tiên và xử lý
+                    String firstSuggestion = suggestions.keySet().iterator().next();
+                    System.out.println("Sử dụng gợi ý: " + firstSuggestion);
+                    return tiki.getProductReviewsFromSuggestion(firstSuggestion);
+                } else {
+                    return "Không tìm thấy sản phẩm nào cho từ khóa: " + productName;
+                }
+            }
+
+            return productReviews;
+        } catch (Exception e) {
+            System.err.println("Lỗi tìm kiếm sản phẩm: " + e.getMessage());
+            // Trả về lỗi với định dạng 'Lỗi:' để GUI có thể nhận diện
+            return "Lỗi: Không thể tìm kiếm sản phẩm - " + e.getMessage();
+        }
+    }
+
+    // Xử lý yêu cầu tìm kiếm sản phẩm trên Sendo
+    private String processSendoProductRequest(String productName) {
+        // Hiện tại chưa triển khai, trả về thông báo
+        return "Lỗi: Đang phát triển chức năng tìm kiếm trên SENDO";
+    }
+
+    // Xử lý yêu cầu tìm kiếm sản phẩm trên Amazon
+    private String processAmazonProductRequest(String productName) {
+        // Hiện tại chưa triển khai, trả về thông báo
+        return "Lỗi: Đang phát triển chức năng tìm kiếm trên AMAZON";
     }
 
     public static void main(String[] args) {
