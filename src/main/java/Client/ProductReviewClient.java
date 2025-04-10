@@ -49,13 +49,19 @@ public class ProductReviewClient {
             // Send product name to server
             writer.println(productName);
             
-            // Process response
+            // Process response - READ ALL DATA in one single response
+            StringBuilder fullResponse = new StringBuilder();
             String response;
             while ((response = reader.readLine()) != null) {
                 if (response.equals("<END>")) {
                     break;
                 }
-                results.add(response);
+                fullResponse.append(response);
+            }
+            
+            // Only add the full complete response if it's not empty
+            if (fullResponse.length() > 0) {
+                results.add(fullResponse.toString());
             }
         } catch (IOException e) {
             results.add("Lỗi khi tìm kiếm sản phẩm: " + e.getMessage());

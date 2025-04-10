@@ -91,10 +91,12 @@ public class getReviewTIKIProduct {
     private double safeGetDouble(JSONObject json, String key, double defaultValue) {
         try {
             if (!json.has(key) || json.isNull(key)) {
+                System.out.println("DEBUG - Không tìm thấy hoặc null cho khóa: " + key);
                 return defaultValue;
             }
             
             Object value = json.get(key);
+            System.out.println("DEBUG - Giá trị gốc cho khóa '" + key + "': " + value + ", Class: " + value.getClass().getName());
             
             if (value instanceof Double) {
                 return (Double) value;
@@ -108,13 +110,25 @@ public class getReviewTIKIProduct {
                 try {
                     return Double.parseDouble((String) value);
                 } catch (NumberFormatException e) {
+                    System.err.println("Lỗi chuyển đổi chuỗi sang double: " + e.getMessage());
                     return defaultValue;
                 }
             } else {
-                return defaultValue;
+                // Thử chuyển đổi trực tiếp từ chuỗi JSON
+                try {
+                    String valueStr = value.toString();
+                    System.out.println("DEBUG - Đang thử chuyển đổi từ chuỗi: " + valueStr);
+                    double parsedValue = Double.parseDouble(valueStr);
+                    System.out.println("DEBUG - Chuyển đổi thành công: " + parsedValue);
+                    return parsedValue;
+                } catch (Exception e) {
+                    System.err.println("Lỗi chuyển đổi từ chuỗi: " + e.getMessage());
+                    return defaultValue;
+                }
             }
         } catch (JSONException e) {
             System.err.println("Lỗi khi lấy giá trị double cho khóa '" + key + "': " + e.getMessage());
+            e.printStackTrace();
             return defaultValue;
         }
     }
@@ -302,6 +316,7 @@ public class getReviewTIKIProduct {
         }
         
         try {
+            // Khôi phục limit=10 theo yêu cầu
             String apiUrl = "https://tiki.vn/api/v2/reviews?limit=10&product_id=" + productId;
             
             // Kiểm tra tính hợp lệ của URL
@@ -310,14 +325,49 @@ public class getReviewTIKIProduct {
                 return null;
             }
             
+            System.out.println("DEBUG - Đang gửi request đến API đánh giá: " + apiUrl);
+            
             String jsonResponse = Jsoup.connect(apiUrl)
                     .ignoreContentType(true)
                     .userAgent("Mozilla/5.0")
+                    .timeout(10000) // Tăng timeout lên 10 giây
                     .execute()
                     .body();
-            return new JSONObject(jsonResponse);
+            
+            JSONObject reviewsJson = new JSONObject(jsonResponse);
+            
+            // In thông tin debug để theo dõi dữ liệu đánh giá
+            if (reviewsJson.has("rating_average")) {
+                double ratingAvg = reviewsJson.optDouble("rating_average", 0.0);
+                System.out.println("DEBUG - Rating average từ API: " + ratingAvg);
+                
+                // Đảm bảo rằng rating_average được lưu dưới dạng Double
+                // trong trường hợp nó không phải là Double
+                if (ratingAvg == 0.0 && reviewsJson.has("rating_average")) {
+                    try {
+                        String ratingStr = reviewsJson.get("rating_average").toString();
+                        ratingAvg = Double.parseDouble(ratingStr);
+                        System.out.println("DEBUG - Chuyển đổi rating_average từ chuỗi: " + ratingAvg);
+                        // Cập nhật lại giá trị trong JSON
+                        reviewsJson.put("rating_average", ratingAvg);
+                    } catch (Exception e) {
+                        System.err.println("Lỗi khi chuyển đổi rating_average: " + e.getMessage());
+                    }
+                }
+            } else {
+                System.out.println("DEBUG - Không tìm thấy trường rating_average trong phản hồi API");
+            }
+            
+            if (reviewsJson.has("reviews_count")) {
+                System.out.println("DEBUG - Số lượng đánh giá từ API: " + reviewsJson.optInt("reviews_count", 0));
+            } else {
+                System.out.println("DEBUG - Không tìm thấy trường reviews_count trong phản hồi API");
+            }
+            
+            return reviewsJson;
         } catch (Exception e) {
             System.err.println("Lỗi lấy đánh giá sản phẩm: " + e.getMessage());
+            e.printStackTrace(); // In chi tiết lỗi để debug
             return null;
         }
     }
@@ -401,10 +451,27 @@ public class getReviewTIKIProduct {
                 return "Lỗi khi lấy đánh giá sản phẩm.";
             }
             
-            // Sử dụng các phương thức an toàn
+            // Sử dụng các phương thức an toàn để lấy số lượng review
             int reviewCount = reviewDetails.optInt("reviews_count", reviewDetails.optInt("total", 0));
+            
+            // Lấy đánh giá trung bình
             double avgRating = safeGetDouble(reviewDetails, "rating_average", 0.0);
-            System.out.println("DEBUG - Đánh giá sản phẩm: count=" + reviewCount + ", avgRating=" + avgRating);
+            System.out.println("DEBUG - Đánh giá từ API reviews: count=" + reviewCount + ", avgRating=" + avgRating);
+            
+            // Lấy đánh giá từ chi tiết sản phẩm
+            double productRating = 0.0;
+            if (productDetails.has("rating_average") && !productDetails.isNull("rating_average")) {
+                productRating = safeGetDouble(productDetails, "rating_average", 0.0);
+                System.out.println("DEBUG - Đánh giá từ API sản phẩm: " + productRating);
+            }
+            
+            // Sử dụng đánh giá cao hơn giữa hai nguồn
+            if (avgRating == 0.0 || (productRating > 0 && productRating > avgRating)) {
+                avgRating = productRating;
+                System.out.println("DEBUG - Sử dụng đánh giá từ API sản phẩm: avgRating=" + avgRating);
+            }
+            
+            System.out.println("DEBUG - Đánh giá sản phẩm cuối cùng: count=" + reviewCount + ", avgRating=" + avgRating);
             
             JSONArray reviews = reviewDetails.getJSONArray("data");
             System.out.println("DEBUG - Số lượng đánh giá lấy được: " + reviews.length());
@@ -541,9 +608,27 @@ public class getReviewTIKIProduct {
                         return "Lỗi khi lấy đánh giá sản phẩm.";
                     }
                     
-                    // Sử dụng các phương thức an toàn
+                    // Sử dụng các phương thức an toàn để lấy số lượng review
                     int reviewCount = reviewDetails.optInt("reviews_count", reviewDetails.optInt("total", 0));
+                    
+                    // Lấy đánh giá trung bình
                     double avgRating = safeGetDouble(reviewDetails, "rating_average", 0.0);
+                    System.out.println("DEBUG - [Suggestion] Đánh giá từ API reviews: count=" + reviewCount + ", avgRating=" + avgRating);
+                    
+                    // Lấy đánh giá từ chi tiết sản phẩm
+                    double productRating = 0.0;
+                    if (productDetails.has("rating_average") && !productDetails.isNull("rating_average")) {
+                        productRating = safeGetDouble(productDetails, "rating_average", 0.0);
+                        System.out.println("DEBUG - [Suggestion] Đánh giá từ API sản phẩm: " + productRating);
+                    }
+                    
+                    // Sử dụng đánh giá cao hơn giữa hai nguồn
+                    if (avgRating == 0.0 || (productRating > 0 && productRating > avgRating)) {
+                        avgRating = productRating;
+                        System.out.println("DEBUG - [Suggestion] Sử dụng đánh giá từ API sản phẩm: avgRating=" + avgRating);
+                    }
+                    
+                    System.out.println("DEBUG - [Suggestion] Đánh giá sản phẩm cuối cùng: count=" + reviewCount + ", avgRating=" + avgRating);
                     JSONArray reviews = reviewDetails.getJSONArray("data");
                     
                     // Xây dựng chuỗi phản hồi
