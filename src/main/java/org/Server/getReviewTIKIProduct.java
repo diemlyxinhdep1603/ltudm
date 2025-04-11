@@ -317,7 +317,7 @@ public class getReviewTIKIProduct {
         
         try {
             // Khôi phục limit=10 theo yêu cầu
-            String apiUrl = "https://tiki.vn/api/v2/reviews?limit=10&product_id=" + productId;
+            String apiUrl = "https://tiki.vn/api/v2/reviews?limit=20&product_id=" + productId;
             
             // Kiểm tra tính hợp lệ của URL
             if (!Valid_Input_Data.isValidUrl(apiUrl)) {

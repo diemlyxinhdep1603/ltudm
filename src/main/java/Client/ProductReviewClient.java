@@ -19,7 +19,7 @@ public class ProductReviewClient {
 
     /**
      * Constructor
-     * 
+     *
      * @param serverHost Server hostname or IP
      * @param serverPort Server port
      */
@@ -30,13 +30,13 @@ public class ProductReviewClient {
 
     /**
      * Search for product reviews
-     * 
+     *
      * @param productName The product name to search for
      * @return List of reviews or suggestions
      */
     public List<String> searchProduct(String productName) {
         List<String> results = new ArrayList<>();
-        
+
         try {
             // Connect to server if not already connected
             if (!isConnected()) {
@@ -45,10 +45,10 @@ public class ProductReviewClient {
                     return results;
                 }
             }
-            
+
             // Send product name to server
             writer.println(productName);
-            
+
             // Process response - READ ALL DATA in one single response
             StringBuilder fullResponse = new StringBuilder();
             String response;
@@ -56,23 +56,23 @@ public class ProductReviewClient {
                 if (response.equals("<END>")) {
                     break;
                 }
-                fullResponse.append(response);
+                fullResponse.append(response).append("\n");
             }
-            
+
             // Only add the full complete response if it's not empty
             if (fullResponse.length() > 0) {
-                results.add(fullResponse.toString());
+                results.add(fullResponse.toString().trim());
             }
         } catch (IOException e) {
             results.add("Lỗi khi tìm kiếm sản phẩm: " + e.getMessage());
         }
-        
+
         return results;
     }
 
     /**
      * Change the current platform for product reviews
-     * 
+     *
      * @param platform The platform to change to (TIKI, SENDO, AMAZON)
      * @return The server's response
      */
@@ -83,11 +83,11 @@ public class ProductReviewClient {
                     return "Không thể kết nối đến máy chủ.";
                 }
             }
-            
+
             // Send platform change request to server
             String request = "PLATFORM:" + platform;
             writer.println(request);
-            
+
             // Read response
             StringBuilder response = new StringBuilder();
             String line;
@@ -97,21 +97,21 @@ public class ProductReviewClient {
                 }
                 response.append(line).append("\n");
             }
-            
+
             // Update current platform if successful
             if (response.toString().contains("Đã chuyển sang nền tảng")) {
                 currentPlatform = platform;
             }
-            
+
             return response.toString().trim();
         } catch (IOException e) {
             return "Lỗi khi chuyển đổi nền tảng: " + e.getMessage();
         }
     }
-    
+
     /**
      * Get the current platform
-     * 
+     *
      * @return The current platform name
      */
     public String getCurrentPlatform() {
@@ -120,7 +120,7 @@ public class ProductReviewClient {
 
     /**
      * Connect to the server
-     * 
+     *
      * @return true if connection successful, false otherwise
      */
     public boolean connect() {
@@ -134,10 +134,10 @@ public class ProductReviewClient {
             return false;
         }
     }
-    
+
     /**
      * Send a request to the server
-     * 
+     *
      * @param request The request to send
      * @return The server's response
      * @throws IOException If an I/O error occurs
@@ -152,7 +152,7 @@ public class ProductReviewClient {
             }
             response.append(line).append("\n");
         }
-        return response.toString();
+        return response.toString().trim();
     }
 
     /**
@@ -177,7 +177,7 @@ public class ProductReviewClient {
 
     /**
      * Check if connected to the server
-     * 
+     *
      * @return true if connected, false otherwise
      */
     public boolean isConnected() {
