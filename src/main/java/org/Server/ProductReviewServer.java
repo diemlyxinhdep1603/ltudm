@@ -11,8 +11,6 @@ import java.util.concurrent.TimeUnit;
 public class ProductReviewServer {
     private int port;
     private getReviewTIKIProduct tiki;
-    private getReviewSendoProduct sendo;
-    private getReviewAmazonProduct amazon;
     private String currentPlatform;
     private static final int N_THREADS = 10; // Number of threads in the pool
     private ExecutorService executorService;
@@ -21,8 +19,6 @@ public class ProductReviewServer {
     public ProductReviewServer(int port) {
         this.port = port;
         this.tiki = new getReviewTIKIProduct();
-        this.sendo = new getReviewSendoProduct();
-        this.amazon = new getReviewAmazonProduct();
         this.currentPlatform = "TIKI";
         this.executorService = Executors.newFixedThreadPool(N_THREADS);
     }

@@ -246,6 +246,8 @@ public class ProductReviewGUI extends JFrame {
             new LineBorder(Color.BLACK, 1),
             BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
+        //Thiết lập kích thước cố định
+        lblOverView.setPreferredSize(new Dimension(800, 60));
         bottomPanel.add(lblOverView, BorderLayout.CENTER);
         
         getContentPane().add(bottomPanel, BorderLayout.SOUTH);

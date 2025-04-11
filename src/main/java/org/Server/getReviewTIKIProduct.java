@@ -372,25 +372,6 @@ public class getReviewTIKIProduct {
         }
     }
 
-    // Hàm lấy thông tin sản phẩm , DỰA TRÊN ID TRÊN ==> Hiển thị ở OVERVIEW
-    public String getProductInfo(String input) {
-        String ID = findProductId(input);  // Tìm ID sản phẩm
-        if (ID == null){
-            return "Không tìm thấy sản phẩm để lấy đánh giá.";
-        }
-        
-        JSONObject product = loadProductDetails(ID);
-        if (product == null) {
-            return "Lỗi khi lấy thông tin sản phẩm.";
-        }
-        
-        // Sử dụng phương thức an toàn để lấy dữ liệu
-        String productName = product.optString("name", "Không có tên");
-        String productPrice = safeGetValue(product, "price");
-        
-        return "Tên sản phẩm: " + productName + " .Có giá là: " + productPrice;
-    }
-
     // Hàm lấy các review của người dùng đã mua sản phẩm
     public String getProductReviews(String productName) {
         // Tìm ID sản phẩm trực tiếp từ từ khóa tìm kiếm
