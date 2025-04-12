@@ -1,66 +1,56 @@
+
 package org.Server;
 
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class ProductReviewServer {
     private int port;
+    private int udpPort = 9876; // Port for UDP broadcasting
     private getReviewTIKIProduct tiki;
     private String currentPlatform;
-    private static final int N_THREADS = 10; // Number of threads in the pool
-    private ExecutorService executorService;
 
-    // Constructor
     public ProductReviewServer(int port) {
         this.port = port;
         this.tiki = new getReviewTIKIProduct();
         this.currentPlatform = "TIKI";
-        this.executorService = Executors.newFixedThreadPool(N_THREADS);
     }
 
-    // Start server and create socket for each client
     public void start() {
+        new Thread(this::startUDPListener).start(); // Start UDP listener in a new thread
         try (ServerSocket server = new ServerSocket(port)) {
             System.out.println("Server đang lắng nghe tại cổng: " + port);
-
-            // Shutdown hook to close ExecutorService on application exit
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                System.out.println("Đang shutdown ExecutorService...");
-                shutdownExecutor(executorService);
-                System.out.println("ExecutorService đã shutdown.");
-            }));
-
-            while (!executorService.isShutdown()) {
-                try {
-                    Socket socket = server.accept();
-                    System.out.println("Client mới đã kết nối: " + socket.getRemoteSocketAddress());
-                    executorService.execute(() -> handleClient(socket));
-                } catch (IOException e) {
-                    if (executorService.isShutdown()) {
-                        System.out.println("Server socket đã đóng do executor shutdown.");
-                        break;
-                    }
-                    System.err.println("Lỗi khi chấp nhận kết nối client: " + e.getMessage());
-                }
+            while (true) {
+                Socket socket = server.accept();
+                new Thread(() -> handleClient(socket)).start();
             }
         } catch (IOException e) {
             System.err.println("Lỗi khởi tạo máy chủ: " + e.getMessage());
-            shutdownExecutor(executorService);
-        } finally {
-            if (!executorService.isTerminated()) {
-                System.out.println("Thực hiện shutdown cuối cùng cho ExecutorService...");
-                shutdownExecutor(executorService);
-            }
-            System.out.println("Server đã dừng.");
         }
     }
 
-    // Handle client connection
+    private void startUDPListener() {
+        try (DatagramSocket udpSocket = new DatagramSocket(udpPort)) {
+            byte[] buffer = new byte[256];
+            while (true) {
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                udpSocket.receive(packet);
+                String received = new String(packet.getData(), 0, packet.getLength());
+                if (received.equals("DISCOVER_SERVER_REQUEST")) {
+                    InetAddress clientAddress = packet.getAddress();
+                    int clientPort = packet.getPort();
+                    String response = "DISCOVER_SERVER_RESPONSE:" + port;
+                    byte[] responseData = response.getBytes();
+                    DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length, clientAddress, clientPort);
+                    udpSocket.send(responsePacket);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Lỗi UDP: " + e.getMessage());
+        }
+    }
+
     private void handleClient(Socket socket) {
         System.out.println("Kết nối từ khách hàng: " + socket.getRemoteSocketAddress());
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -155,20 +145,6 @@ public class ProductReviewServer {
 
     private String processAmazonProductRequest(String productName) {
         return "Lỗi: Đang phát triển chức năng tìm kiếm trên AMAZON";
-    }
-
-    private static void shutdownExecutor(ExecutorService executor) {
-        executor.shutdown();
-        try {
-            if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
-                if (!executor.awaitTermination(60, TimeUnit.SECONDS))
-                    System.err.println("ExecutorService không thể dừng hẳn.");
-            }
-        } catch (InterruptedException ie) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
     }
 
     public static void main(String[] args) {

@@ -77,7 +77,7 @@ public class ProductReviewGUI extends JFrame {
 
     public ProductReviewGUI() {
         // Khởi tạo client kết nối đến server
-        client = new ProductReviewClient("localhost", 1234);
+        client = new ProductReviewClient("localhost", 9876);
         
         // Khởi tạo dữ liệu cho mỗi nền tảng
         platformDataMap.put("TIKI", new PlatformData());
