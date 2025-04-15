@@ -24,9 +24,9 @@ public class getReviewTIKIProduct {
             if (!json.has(key) || json.isNull(key)) {
                 return "0";
             }
-            
+
             Object value = json.get(key);
-            
+
             // Xử lý các kiểu dữ liệu khác nhau
             if (value instanceof Integer || value instanceof Long) {
                 return String.valueOf(value);
@@ -43,7 +43,7 @@ public class getReviewTIKIProduct {
             return "0";
         }
     }
-    
+
     /**
      * Phương thức lấy giá trị Integer an toàn từ JSONObject với giá trị mặc định
      * @param json JSONObject cần trích xuất dữ liệu
@@ -56,9 +56,9 @@ public class getReviewTIKIProduct {
             if (!json.has(key) || json.isNull(key)) {
                 return defaultValue;
             }
-            
+
             Object value = json.get(key);
-            
+
             if (value instanceof Integer) {
                 return (Integer) value;
             } else if (value instanceof Long) {
@@ -77,7 +77,7 @@ public class getReviewTIKIProduct {
             return defaultValue;
         }
     }
-    
+
     /**
      * Phương thức lấy giá trị Double an toàn từ JSONObject với giá trị mặc định
      * @param json JSONObject cần trích xuất dữ liệu
@@ -91,10 +91,10 @@ public class getReviewTIKIProduct {
                 System.out.println("DEBUG - Không tìm thấy hoặc null cho khóa: " + key);
                 return defaultValue;
             }
-            
+
             Object value = json.get(key);
             System.out.println("DEBUG - Giá trị gốc cho khóa '" + key + "': " + value + ", Class: " + value.getClass().getName());
-            
+
             if (value instanceof Double) {
                 return (Double) value;
             } else if (value instanceof Float) {
@@ -133,18 +133,18 @@ public class getReviewTIKIProduct {
     // Hàm lấy danh sách tên gợi ý sản phẩm từ API của Tiki
     public Map<String, String> getSuggestedProducts(String searchQuery) {
         Map<String, String> suggestions = new HashMap<>();
-        
+
         // Kiểm tra tính hợp lệ của từ khóa tìm kiếm
         if (!Valid_Input_Data.isValidKeyword(searchQuery)) {
             System.err.println("Từ khóa tìm kiếm không hợp lệ: " + searchQuery);
             return suggestions;
         }
-        
+
         try {
             String encodedQuery = URLEncoder.encode(searchQuery, "UTF-8");
             // Đây là API để tìm tên gợi ý của sản phẩm.
             String api = "https://tiki.vn/api/shopping/v2/featured_keywords?page_name=Search&q=" + encodedQuery;
-            
+
             // Kiểm tra tính hợp lệ của URL API
             if (!Valid_Input_Data.isValidUrl(api)) {
                 System.err.println("URL API gợi ý không hợp lệ: " + api);
@@ -182,18 +182,18 @@ public class getReviewTIKIProduct {
             System.err.println("Từ khóa tìm kiếm không hợp lệ: " + productName);
             return null;
         }
-        
+
         try {
             // Mã hóa tên sản phẩm và tạo URL tìm kiếm
             String encodedQuery = URLEncoder.encode(productName, "UTF-8");
             String apiUrl = "https://tiki.vn/api/v2/products?limit=40&include=advertisement&aggregations=2&q=" + encodedQuery + "&rating=5";
-            
+
             // Kiểm tra tính hợp lệ của URL API
             if (!Valid_Input_Data.isValidUrl(apiUrl)) {
                 System.err.println("URL API không hợp lệ: " + apiUrl);
                 return null;
             }
-            
+
             // Gọi API và lấy JSON response
             String jsonResponse = Jsoup.connect(apiUrl)
                     .ignoreContentType(true)
@@ -226,7 +226,7 @@ public class getReviewTIKIProduct {
             System.err.println("Từ khóa tìm kiếm không hợp lệ: " + productName);
             return null;
         }
-        
+
         try {
             // Lấy danh sách các gợi ý từ getSuggestedProducts
             Map<String, String> suggestions = getSuggestedProducts(productName);
@@ -235,7 +235,7 @@ public class getReviewTIKIProduct {
                 //Mã hóa url và gọi API để lấy danh sách sản phẩm
                 String encodeUrl = URLEncoder.encode(searchUrl, "UTF-8");
                 String apiUrl = "https://tiki.vn/api/v2/products?limit=40&include=advertisement&aggregations=2&q=" + encodeUrl;
-                
+
                 // Kiểm tra tính hợp lệ của URL API
                 if (!Valid_Input_Data.isValidUrl(apiUrl)) {
                     System.err.println("URL API không hợp lệ: " + apiUrl);
@@ -271,24 +271,24 @@ public class getReviewTIKIProduct {
             System.err.println("ID sản phẩm không hợp lệ: " + productId);
             return null;
         }
-        
+
         try {
             String apiUrl = "https://tiki.vn/api/v2/products/" + productId;
-            
+
             // Kiểm tra tính hợp lệ của URL
             if (!Valid_Input_Data.isValidUrl(apiUrl)) {
                 System.err.println("URL API không hợp lệ: " + apiUrl);
                 return null;
             }
-            
+
             String jsonResponse = Jsoup.connect(apiUrl)
                     .ignoreContentType(true)
                     .userAgent("Mozilla/5.0")
                     .execute()
                     .body();
-            
+
             JSONObject productJson = new JSONObject(jsonResponse);
-            
+
             // Debug: Hiển thị thông tin về trường price để kiểm tra kiểu dữ liệu
             if (productJson.has("price")) {
                 Object priceObj = productJson.get("price");
@@ -296,7 +296,7 @@ public class getReviewTIKIProduct {
             } else {
                 System.out.println("DEBUG - Không tìm thấy trường price trong phản hồi API");
             }
-            
+
             return productJson;
         } catch (Exception e) {
             System.err.println("Lỗi lấy thông tin sản phẩm: " + e.getMessage());
@@ -373,12 +373,12 @@ public class getReviewTIKIProduct {
         // Tìm ID sản phẩm trực tiếp từ từ khóa tìm kiếm
         System.out.println("DEBUG - Bắt đầu tìm kiếm sản phẩm cho từ khóa: " + productName);
         String ID = findProductId(productName);
-        
+
         if (ID == null) {
             System.out.println("DEBUG - Không tìm thấy ID sản phẩm cho từ khóa: " + productName);
             return "Không tìm thấy sản phẩm để lấy đánh giá.";
         }
-        
+
         System.out.println("DEBUG - Đã tìm thấy ID sản phẩm: " + ID + " cho từ khóa: " + productName);
 
         try {
@@ -387,13 +387,13 @@ public class getReviewTIKIProduct {
             if (productDetails == null) {
                 return "Lỗi khi lấy thông tin sản phẩm.";
             }
-            
+
             // Lấy thông tin sản phẩm sử dụng phương thức an toàn
             String name = productDetails.optString("name", "Không có tên");
             // Làm sạch tên sản phẩm - thay thế ký tự | bằng -
             name = name.replace("|", "-");
             String price = safeGetValue(productDetails, "price");
-            
+
             // Tìm hình ảnh phù hợp từ mảng images
             String imgUrl = "Không có";
             try {
@@ -419,7 +419,7 @@ public class getReviewTIKIProduct {
             } catch (Exception e) {
                 System.err.println("Lỗi khi xử lý mảng hình ảnh: " + e.getMessage());
             }
-            
+
             // Lấy thông tin đánh giá
             System.out.println("DEBUG - Bắt đầu lấy đánh giá cho sản phẩm có ID: " + ID);
             List<String> reviewDetails = loadProductReviews(ID);
@@ -474,7 +474,7 @@ public class getReviewTIKIProduct {
 
 
 
-            
+
             // Xây dựng chuỗi phản hồi với định dạng đặc biệt để phân tích ở client
             StringBuilder response = new StringBuilder();
             response.append("Product: ").append(name).append(" | ");
@@ -490,7 +490,7 @@ public class getReviewTIKIProduct {
             }
 
             return response.toString();
-            
+
         } catch (Exception e) {
             return "Lỗi khi xử lý yêu cầu: " + e.getMessage();
         }
@@ -658,4 +658,55 @@ public class getReviewTIKIProduct {
         }
         return "Không có";
     }
+
+    //phương thức tích hợp AI
+    private String extractOnlyReviewContents(JSONArray allReviews) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < allReviews.length(); i++) {
+            JSONObject review = allReviews.getJSONObject(i);
+            String content = review.optString("content", "").trim();
+            if (!content.isEmpty()) {
+                sb.append("- ").append(content.replace("|", "-")).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    public String summarizeReviewsWithAI(String productName) {
+        try {
+            String productId = findProductId(productName);
+            if (productId == null) return "Không tìm thấy sản phẩm.";
+
+            List<String> reviewUrls = loadProductReviews(productId);
+            JSONArray allReviews = new JSONArray();
+
+            for (String url : reviewUrls) {
+                String jsonResponse = Jsoup.connect(url)
+                        .ignoreContentType(true)
+                        .userAgent("Mozilla/5.0")
+                        .timeout(10000)
+                        .execute()
+                        .body();
+                JSONObject reviewJson = new JSONObject(jsonResponse);
+                JSONArray reviews = reviewJson.optJSONArray("data");
+                if (reviews != null) {
+                    for (int i = 0; i < reviews.length(); i++) {
+                        allReviews.put(reviews.getJSONObject(i));
+                    }
+                }
+            }
+
+            String rawReviewText = extractOnlyReviewContents(allReviews);
+            if (rawReviewText.isEmpty()) return "Không có đánh giá nào để tổng hợp.";
+
+            // Gọi AI để tổng hợp
+            AIReviewSummarizer aiSummarizer = new AIReviewSummarizer();
+            return aiSummarizer.summarizeReviews(rawReviewText);
+
+        } catch (Exception e) {
+            return "Lỗi khi tổng hợp review bằng AI: " + e.getMessage();
+        }
+    }
+
+
 }

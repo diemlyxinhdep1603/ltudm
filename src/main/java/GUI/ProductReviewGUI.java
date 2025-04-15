@@ -1,5 +1,6 @@
 package GUI;
 import Client.ProductReviewClient;
+import org.Server.AIReviewSummarizer;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -29,8 +30,9 @@ public class ProductReviewGUI extends JFrame {
     private JPanel panelSanPham;
     private JPanel panelButton;
     private JButton btnTiki;
-    private JButton btnSendo;
-    private JButton btnAmazon;
+    private JButton btnDMX;
+    private JButton btnSummarize; /// mới thêm
+
     private JTable table;
     private JScrollPane tableScrollPane;
     private JLabel lblOverView;
@@ -41,7 +43,8 @@ public class ProductReviewGUI extends JFrame {
     private ProductReviewClient client;
     // Đối tượng xử lý gợi ý tìm kiếm
     private ProductSuggestionProvider suggestionProvider;
-    
+
+
     // Nền tảng hiện tại
     private String currentPlatform = "TIKI";
     
@@ -81,8 +84,8 @@ public class ProductReviewGUI extends JFrame {
         
         // Khởi tạo dữ liệu cho mỗi nền tảng
         platformDataMap.put("TIKI", new PlatformData());
-        platformDataMap.put("SENDO", new PlatformData());
-        platformDataMap.put("AMAZON", new PlatformData());
+        platformDataMap.put("ĐIỆN MÁY XANH", new PlatformData());
+
         
         setTitle("Tổng Hợp Review Sản Phẩm");
         setSize(1333, 720);
@@ -145,22 +148,35 @@ public class ProductReviewGUI extends JFrame {
         // Nút TIKI
         btnTiki = new JButton("TIKI");
         formatButton(btnTiki);
+        btnTiki.setPreferredSize(new Dimension(180, 30));
         btnTiki.setBackground(new Color(0, 150, 136)); // Nền tảng mặc định
         btnTiki.addActionListener(e -> showPlatform("TIKI"));
         panelButton.add(btnTiki);
         
-        // Nút SENDO
-        btnSendo = new JButton("SENDO");
-        formatButton(btnSendo);
-        btnSendo.addActionListener(e -> showPlatform("SENDO"));
-        panelButton.add(btnSendo);
-        
-        // Nút AMAZON/LAZADA
-        btnAmazon = new JButton("AMAZON");
-        formatButton(btnAmazon);
-        btnAmazon.addActionListener(e -> showPlatform("AMAZON"));
-        panelButton.add(btnAmazon);
-        
+        // Nút ĐIỆN MÁY XANH
+        btnDMX = new JButton("ĐIỆN MÁY XANH");
+        formatButton(btnDMX);
+        btnDMX.setPreferredSize(new Dimension(180, 30)); // Chiều rộng 180px, chiều cao 30px
+        btnDMX.setBackground(new Color(0, 150, 136)); // Nền tảng mặc định
+        btnDMX.addActionListener(e -> showPlatform("ĐIỆN MÁY XANH"));
+        panelButton.add(btnDMX);
+
+        //thêm *********
+        // Khởi tạo nút "Tổng hợp đánh giá"
+        btnSummarize = new JButton("TỔNG HỢP");
+        btnSummarize.setFont(new Font("Arial", Font.BOLD, 14));
+        btnSummarize.setBackground(Color.DARK_GRAY);
+        btnSummarize.setForeground(Color.WHITE);
+        btnSummarize.setFocusPainted(false);
+        btnSummarize.setPreferredSize(new Dimension(180, 30));
+        btnSummarize.addActionListener(e -> showSummarizedReview());
+
+        // Thêm nút vào giao diện
+        // Ví dụ: Thêm vào panelButton hoặc một panel phù hợp khác
+        panelButton.add(btnSummarize);
+
+
+
         topPanel.add(panelButton, BorderLayout.SOUTH);
 
         // Panel chứa bảng kết quả và hình ảnh
@@ -372,7 +388,8 @@ public class ProductReviewGUI extends JFrame {
             setCursor(Cursor.getDefaultCursor());
         }
     }
-    
+
+
     /**
      * Xử lý kết quả tìm kiếm từ server
      */
@@ -710,7 +727,7 @@ public class ProductReviewGUI extends JFrame {
     }
     
     /**
-     * Hiển thị đánh giá từ nền tảng chỉ định (TIKI, SENDO, AMAZON)
+     * Hiển thị đánh giá từ nền tảng chỉ định (TIKI, ĐIỆN MÁY XANH)
      * @param platform Tên nền tảng
      */
     private void showPlatform(String platform) {
@@ -724,8 +741,8 @@ public class ProductReviewGUI extends JFrame {
         
         // Cập nhật UI để hiển thị nền tảng được chọn
         btnTiki.setBackground(platform.equals("TIKI") ? new Color(0, 150, 136) : new Color(70, 130, 180));
-        btnSendo.setBackground(platform.equals("SENDO") ? new Color(0, 150, 136) : new Color(70, 130, 180));
-        btnAmazon.setBackground(platform.equals("AMAZON") ? new Color(0, 150, 136) : new Color(70, 130, 180));
+        btnDMX.setBackground(platform.equals("ĐIỆN MÁY XANH") ? new Color(0, 150, 136) : new Color(70, 130, 180));
+
         
         try {
             // Thay đổi nền tảng trên server
@@ -738,8 +755,8 @@ public class ProductReviewGUI extends JFrame {
                 
                 // Khôi phục UI về nền tảng trước đó
                 btnTiki.setBackground(previousPlatform.equals("TIKI") ? new Color(0, 150, 136) : new Color(70, 130, 180));
-                btnSendo.setBackground(previousPlatform.equals("SENDO") ? new Color(0, 150, 136) : new Color(70, 130, 180));
-                btnAmazon.setBackground(previousPlatform.equals("AMAZON") ? new Color(0, 150, 136) : new Color(70, 130, 180));
+                btnDMX.setBackground(previousPlatform.equals("ĐIỆN MÁY XANH") ? new Color(0, 150, 136) : new Color(70, 130, 180));
+
                 return;
             }
             
@@ -791,6 +808,49 @@ public class ProductReviewGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Lỗi khi chuyển đổi nền tảng: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
+    //them
+    private void showSummarizedReview() {
+        // Lấy dữ liệu của nền tảng hiện tại
+        PlatformData platformData = platformDataMap.get(currentPlatform);
+
+        if (platformData.productName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng tìm kiếm sản phẩm trước", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Trích xuất nội dung đánh giá từ tableModel
+        StringBuilder reviewText = new StringBuilder();
+        DefaultTableModel model = platformData.tableModel;
+        for (int i = 0; i < model.getRowCount(); i++) {
+            Object content = model.getValueAt(i, 2); // Cột 2: nội dung đánh giá
+            if (content != null) {
+                reviewText.append("- ").append(content.toString()).append("\n");
+            }
+        }
+
+        // Kiểm tra nếu không có đánh giá
+        if (reviewText.length() == 0) {
+            JOptionPane.showMessageDialog(this, "Không có đánh giá nào để tổng hợp", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        // Gọi AI để tổng hợp review
+        AIReviewSummarizer aiSummarizer = new AIReviewSummarizer();
+        String summarizedReview = aiSummarizer.summarizeReviews(reviewText.toString());
+        summarizedReview = summarizedReview.replaceAll("(?m)^\\s*\\*", "-");
+        summarizedReview = summarizedReview.replace("**", "");
+
+
+        // Hiển thị kết quả trong một hộp thoại
+        JTextArea textArea = new JTextArea(summarizedReview);
+        textArea.setWrapStyleWord(true);
+        textArea.setLineWrap(true);
+        textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(600, 400));
+        JOptionPane.showMessageDialog(this, scrollPane, "Tổng hợp đánh giá", JOptionPane.INFORMATION_MESSAGE);
+    }
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(ProductReviewGUI::new);

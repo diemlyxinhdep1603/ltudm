@@ -110,15 +110,14 @@ public class ProductReviewServer {
         switch (currentPlatform) {
             case "TIKI":
                 return processTikiProductRequest(productName);
-            case "SENDO":
-                return processSendoProductRequest(productName);
-            case "AMAZON":
-                return processAmazonProductRequest(productName);
+            case "ĐIỆN MÁY XANH":
+                return processDMXProductRequest(productName);
             default:
                 return "Lỗi: Nền tảng không được hỗ trợ: " + currentPlatform;
         }
     }
 
+    /*
     private String processTikiProductRequest(String productName) {
         try {
             String productReviews = tiki.getProductReviews(productName);
@@ -139,13 +138,46 @@ public class ProductReviewServer {
         }
     }
 
-    private String processSendoProductRequest(String productName) {
+     */
+    private String processTikiProductRequest(String productName) {
+        try {
+            String productReviews = tiki.getProductReviews(productName);
+            String summarizedReview = tiki.summarizeReviewsWithAI(productName);
+
+            if (productReviews.contains("Không tìm thấy sản phẩm")) {
+                Map<String, String> suggestions = tiki.getSuggestedProducts(productName);
+                if (!suggestions.isEmpty()) {
+                    String firstSuggestion = suggestions.keySet().iterator().next();
+                    System.out.println("Sử dụng gợi ý: " + firstSuggestion);
+                    productReviews = tiki.getProductReviewsFromSuggestion(firstSuggestion);
+                    summarizedReview = tiki.summarizeReviewsWithAI(firstSuggestion);
+                } else {
+                    return "Không tìm thấy sản phẩm nào cho từ khóa: " + productName;
+                }
+            }
+
+            // Kiểm tra và kết hợp kết quả
+            StringBuilder response = new StringBuilder(productReviews);
+            if (!summarizedReview.isEmpty() && !summarizedReview.contains("Lỗi") &&
+                    !summarizedReview.equals("Không có đánh giá nào để tổng hợp.")) {
+                response.append("\n\nTổng hợp đánh giá:\n").append(summarizedReview);
+            } else {
+                response.append("\n\nTổng hợp đánh giá: Không có tóm tắt đánh giá do thiếu dữ liệu hoặc lỗi.");
+            }
+
+            return response.toString();
+        } catch (Exception e) {
+            System.err.println("Lỗi tìm kiếm sản phẩm: " + e.getMessage());
+            return "Lỗi: Không thể tìm kiếm sản phẩm - " + e.getMessage();
+        }
+    }
+
+
+    private String processDMXProductRequest(String productName) {
         return "Lỗi: Đang phát triển chức năng tìm kiếm trên SENDO";
     }
 
-    private String processAmazonProductRequest(String productName) {
-        return "Lỗi: Đang phát triển chức năng tìm kiếm trên AMAZON";
-    }
+
 
     public static void main(String[] args) {
         ProductReviewServer server = new ProductReviewServer(1234);
