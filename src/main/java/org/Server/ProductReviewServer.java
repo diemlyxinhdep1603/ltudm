@@ -1,6 +1,9 @@
 
 package org.Server;
 
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+
 import java.io.*;
 import java.net.*;
 import java.util.Map;
@@ -16,9 +19,37 @@ public class ProductReviewServer {
         this.tiki = new getReviewTIKIProduct();
         this.currentPlatform = "TIKI";
     }
+    public void push_IP() {
+        try {
+            // Tạo socket để lấy địa chỉ IP cục bộ
+            Socket socket = new Socket("daotao.sgu.edu.vn", 80);
+            String localIP = socket.getLocalAddress().toString().substring(1);
+            System.out.println("Địa chỉ server : " + localIP);
+            socket.close(); // Đóng socket sau khi sử dụng
+
+            // URL API để cập nhật IP
+            String api = "https://retoolapi.dev/9EKKBD/data/1";
+            String jsonData = "{\"ip\":\"" + localIP + "\"}";
+
+            // Thực hiện yêu cầu PUT để cập nhật IP
+            Jsoup.connect(api)
+                    .ignoreContentType(true)
+                    .ignoreHttpErrors(true)
+                    .header("Content-Type", "application/json")
+                    .requestBody(jsonData)
+                    .method(Connection.Method.PUT)
+                    .execute();
+
+            System.out.println("Đã cập nhật địa chỉ IP thành công.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void start() {
-        new Thread(this::startUDPListener).start(); // Start UDP listener in a new thread
+        //new Thread(this::startUDPListener).start(); // Start UDP listener in a new thread
+        //
+        push_IP();
         try (ServerSocket server = new ServerSocket(port)) {
             System.out.println("Server đang lắng nghe tại cổng: " + port);
             while (true) {

@@ -1,4 +1,5 @@
 package GUI;
+import Client.IPFetcher;
 import Client.ProductReviewClient;
 import org.Server.AIReviewSummarizer;
 
@@ -79,6 +80,11 @@ public class ProductReviewGUI extends JFrame {
     private Map<String, PlatformData> platformDataMap = new HashMap<>();
 
     public ProductReviewGUI() {
+       //Gọi API để lấy IP server
+        IPFetcher ipFetcher = new IPFetcher();
+        String ip = ipFetcher.fetch_IP();
+
+        //client = new ProductReviewClient("ip", 1234);
         // Khởi tạo client kết nối đến server
         client = new ProductReviewClient("localhost", 1234);
         
@@ -233,7 +239,7 @@ public class ProductReviewGUI extends JFrame {
         
         TableColumn videoColumn = table.getColumnModel().getColumn(4);
         videoColumn.setPreferredWidth(100);
-        
+        //
         tableScrollPane = new JScrollPane(table);
         mainContentPanel.add(tableScrollPane, BorderLayout.CENTER);
         

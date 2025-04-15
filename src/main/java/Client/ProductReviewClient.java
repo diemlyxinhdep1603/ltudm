@@ -5,6 +5,12 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.json.JSONObject;
+
+import java.io.IOException;
 /**
  * Client for the Product Review application
  * Handles communication with the server and processes responses
@@ -183,4 +189,9 @@ public class ProductReviewClient {
     public boolean isConnected() {
         return socket != null && socket.isConnected() && !socket.isClosed();
     }
+
+
+
+
+
 }
