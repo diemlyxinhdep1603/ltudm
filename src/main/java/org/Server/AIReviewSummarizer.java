@@ -37,8 +37,8 @@ public class AIReviewSummarizer {
             conn.setDoOutput(true);
 
             // Tạo JSON request body
-            String jsonInputString = "{\"contents\": [{\"parts\":[{\"text\": \"Tổng hợp các đánh giá sau thành một ý kiến chung nhất, " +
-                    "trình bày rõ ràng bao gồm điểm nổi bật của sản phẩm và nhược, điểm nổi bật và nhược điểm hãy viết in hoa và in đậm, ngoài ra các ý kiến bên dưới chỉ cần gạch đầu dòng là được. Xin cảm ơn: " +
+            String jsonInputString = "{\"contents\": [{\"parts\":[{\"text\": \"Dựa trên các review hiện có, bạn có thể liệt kê những điểm mạnh đáng chú ý và những điểm yếu cần cải thiện của sản không?, ĐIỂM MẠNH, ĐIỂM YẾU VÀ TỔNG KẾT hãy viết in hoa các từ này giúp tôi nhé giúp tôi nhé, mỗi ý chính như vậy khi viết xong thì phải xuống dòng nhá. còn nội dung từng phần thì không cần phải in hoa" +
+
                     reviews.replace("\"", "\\\"") + "\"}]}]}";
             System.out.println("JSON Request: " + jsonInputString); // Debug
 
