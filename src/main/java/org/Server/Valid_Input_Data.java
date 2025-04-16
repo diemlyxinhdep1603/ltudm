@@ -123,12 +123,12 @@ public class Valid_Input_Data {
         // Chỉ chấp nhận các platform đã định nghĩa
         switch (platform.toUpperCase()) {
             case "TIKI":
-            case "SENDO":
-            case "AMAZON":
+            case "ĐIỆN MÁY XANH":
+
                 lastErrorMessage = ""; // Xóa thông báo lỗi nếu không có lỗi
                 return true;
             default:
-                lastErrorMessage = "Platform không hợp lệ: " + platform + " (Chỉ chấp nhận TIKI, SENDO, AMAZON)";
+                lastErrorMessage = "Platform không hợp lệ: " + platform + " (Chỉ chấp nhận TIKI, ĐIỆN MÁY XANH)";
                 System.out.println(lastErrorMessage);
                 return false;
         }
@@ -175,13 +175,15 @@ public class Valid_Input_Data {
             System.out.println(lastErrorMessage);
             return false;
         }
-        
+        /*
         // Nội dung không được quá dài (ví dụ: giới hạn 5000 ký tự)
         if (content.length() > 5000) {
             lastErrorMessage = "Nội dung đánh giá không hợp lệ: Quá dài (> 5000 ký tự)";
             System.out.println(lastErrorMessage);
             return false;
         }
+
+         */
         
         // Kiểm tra xem có mã độc hại hay không
         if (content.contains("<script>") || content.contains("</script>")) {
