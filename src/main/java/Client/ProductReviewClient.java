@@ -79,7 +79,7 @@ public class ProductReviewClient {
     /**
      * Change the current platform for product reviews
      *
-     * @param platform The platform to change to (TIKI, SENDO, AMAZON)
+     * @param platform The platform to change to (TIKI, ĐIỆN MÁY XANH, SENDO, AMAZON)
      * @return The server's response
      */
     public String changePlatform(String platform) {
@@ -202,6 +202,27 @@ public class ProductReviewClient {
             return sendRequest(request);
         } catch (IOException e) {
             return "Lỗi khi tổng hợp đánh giá: " + e.getMessage();
+        }
+    }
+    
+    /**
+     * Lấy thông tin đánh giá (rating) chính xác từ trang sản phẩm Điện Máy Xanh
+     * @param productUrl URL của sản phẩm
+     * @return Chuỗi định dạng "average_rating:X.X|total_reviews:Y" hoặc thông báo lỗi
+     */
+    public String getProductRatingInfo(String productUrl) {
+        try {
+            if (!isConnected()) {
+                if (!connect()) {
+                    return "Không thể kết nối đến máy chủ.";
+                }
+            }
+            
+            // Gửi yêu cầu lấy thông tin đánh giá với định dạng: GET_RATING_INFO:productUrl
+            String request = "GET_RATING_INFO:" + productUrl;
+            return sendRequest(request);
+        } catch (IOException e) {
+            return "Lỗi khi lấy thông tin đánh giá: " + e.getMessage();
         }
     }
 

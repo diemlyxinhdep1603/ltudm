@@ -4,6 +4,7 @@ import Client.ProductReviewClient;
 //import org.Server.AIReviewSummarizer;
 
 import javax.swing.*;
+import java.io.FileWriter;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -15,11 +16,14 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.URI;
 import java.net.URL;
+import java.net.HttpURLConnection;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 
 /**
  * Giao diện người dùng chính cho ứng dụng Product Review với khả năng co giãn theo kích thước cửa sổ
@@ -345,10 +349,69 @@ public class ProductReviewGUI extends JFrame {
      */
     private void displayProductImage(String imageUrl) {
         try {
-            if (imageUrl != null && !imageUrl.isEmpty()) {
-                // Tải hình ảnh từ URL
-                URL url = new URL(imageUrl);
-                Image image = ImageIO.read(url);
+            if (imageUrl == null || imageUrl.isEmpty()) {
+                lblProductImage.setIcon(null);
+                lblProductImage.setText("Không có hình ảnh");
+                System.err.println("URL hình ảnh rỗng hoặc null");
+                return;
+            }
+
+            // ===== Xử lý URL trước khi tải =====
+            System.out.println("URL ảnh gốc: " + imageUrl);
+            
+            // Đảm bảo URL hình ảnh có giao thức
+            if (imageUrl.startsWith("//")) {
+                imageUrl = "https:" + imageUrl;
+                System.out.println("Đã thêm https: " + imageUrl);
+            }
+            
+            // Loại bỏ phần xử lý ảnh từ TGDD trong URL (nếu có)
+            if (imageUrl.contains("/imgt/") || imageUrl.contains("img.tgdd.vn")) {
+                int cdnIndex = imageUrl.indexOf("https://cdn.tgdd.vn");
+                if (cdnIndex > 0) {
+                    imageUrl = imageUrl.substring(cdnIndex);
+                    System.out.println("Đã loại bỏ phần xử lý ảnh: " + imageUrl);
+                }
+            }
+            
+            // Đảm bảo URL có đủ phần HTTP cho java.net.URL parse
+            if (!imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) {
+                imageUrl = "https:" + imageUrl;
+                System.out.println("Đã thêm protocol HTTPS: " + imageUrl);
+            }
+            
+            // Nếu URL chứa ký tự không hợp lệ, encode URL
+            if (imageUrl.contains(" ")) {
+                imageUrl = imageUrl.replace(" ", "%20");
+                System.out.println("Đã encode ký tự space: " + imageUrl);
+            }
+            
+            System.out.println("URL ảnh đã xử lý: " + imageUrl);
+            
+            // ===== Tải ảnh với timeout =====
+            URL url = new URL(imageUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            
+            // Thiết lập User-Agent để tránh bị chặn
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(10000);
+            
+            // Mở connection
+            connection.connect();
+            
+            // Kiểm tra response code
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                System.err.println("Lỗi HTTP khi tải ảnh: " + responseCode);
+                lblProductImage.setIcon(null);
+                lblProductImage.setText("Lỗi HTTP: " + responseCode);
+                return;
+            }
+            
+            // Đọc ảnh từ InputStream
+            try (InputStream in = connection.getInputStream()) {
+                Image image = ImageIO.read(in);
                 
                 if (image != null) {
                     // Lấy kích thước khung hình ảnh sản phẩm
@@ -376,20 +439,21 @@ public class ProductReviewGUI extends JFrame {
                     lblProductImage.setText("");
                     
                     // In ra log để debug
+                    System.out.println("Đã tải thành công hình ảnh từ URL: " + imageUrl);
                     System.out.println("Kích thước panel: " + panelWidth + "x" + panelHeight);
                     System.out.println("Kích thước ảnh đã co giãn: " + width + "x" + height);
                 } else {
                     lblProductImage.setIcon(null);
                     lblProductImage.setText("Không thể tải hình ảnh");
+                    System.err.println("ImageIO.read trả về null cho URL: " + imageUrl);
                 }
-            } else {
-                lblProductImage.setIcon(null);
-                lblProductImage.setText("Không có hình ảnh");
             }
         } catch (Exception e) {
+            // Hiển thị thông báo lỗi chi tiết
             lblProductImage.setIcon(null);
-            lblProductImage.setText("Lỗi: " + e.getMessage());
+            lblProductImage.setText("<html>Lỗi tải ảnh:<br>" + e.getMessage() + "</html>");
             System.err.println("Lỗi hiển thị hình ảnh: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -404,10 +468,10 @@ public class ProductReviewGUI extends JFrame {
         }
         
         // Kiểm tra độ dài từ khóa tìm kiếm
-        if (productName.length() > 100) {
-            JOptionPane.showMessageDialog(this, "Từ khóa tìm kiếm quá dài (> 100 ký tự). Vui lòng rút ngắn từ khóa.", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+    //    if (productName.length() > 100) {
+    //        JOptionPane.showMessageDialog(this, "Từ khóa tìm kiếm quá dài (> 100 ký tự). Vui lòng rút ngắn từ khóa.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+    //        return;
+    //    }
         
         // Hiển thị con trỏ đang xử lý
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -686,6 +750,165 @@ public class ProductReviewGUI extends JFrame {
         for (String result : results) {
             allMessages.append(result).append("\n");
         }
+        
+        // Thêm ghi log để debug
+        try {
+            // Import lớp mới
+            Client.ResponseLogger.init();
+            Client.ResponseLogger.logError(currentPlatform, textInfor.getText().trim(), 
+                String.join("\n", results), "Không thể phân tích kết quả từ server");
+        } catch (Exception logEx) {
+            System.err.println("Lỗi khi ghi log: " + logEx.getMessage());
+        }
+        
+        // Kiểm tra xem phản hồi có phải là JSON không
+        try {
+            if (results.size() > 0 && results.get(0).trim().startsWith("{")) {
+                // Log cho việc debug
+                String jsonString = results.get(0).trim();
+                System.out.println("Phân tích JSON response...");
+                
+                // Lưu response vào file để debug
+                // Ghi log để debug 
+                try {
+                    java.io.FileWriter logWriter = new java.io.FileWriter("json_response_debug.json");
+                    logWriter.write(jsonString);
+                    logWriter.close();
+                    System.out.println("Đã lưu JSON response vào file debug");
+                } catch (Exception e) {
+                    System.err.println("Lỗi lưu file debug: " + e.getMessage());
+                }
+                
+                // Có vẻ là JSON, thử phân tích như JSON
+                org.json.JSONObject jsonResponse = new org.json.JSONObject(jsonString);
+                
+                // Nếu có trạng thái thành công (áp dụng cho mọi nền tảng)
+                if (jsonResponse.has("status") && jsonResponse.getString("status").equals("success")) {
+                    System.out.println("JSON có status success");
+                    
+                    // Lấy thông tin sản phẩm từ JSON
+                    org.json.JSONObject productJson = jsonResponse.getJSONObject("product");
+                    String productName = productJson.getString("name");
+                    String productPrice = productJson.getString("price");
+                    String productImage = productJson.getString("image");
+                    // Đảm bảo URL hình ảnh đầy đủ
+                    if (productImage.startsWith("//")) {
+                        productImage = "https:" + productImage;
+                    }
+                    // Lấy ID và URL nếu có, hoặc sử dụng giá trị mặc định
+                    String productId = productJson.has("id") ? productJson.get("id").toString() : "-1";
+                    String productUrl = productJson.has("url") ? productJson.getString("url") : "";
+                    
+                    // Lấy thông tin đánh giá từ server nếu có
+                    org.json.JSONArray reviewsArray = jsonResponse.getJSONArray("reviews");
+                    int reviewCount = reviewsArray.length();
+                    double avgRating = 0.0;
+                    
+                    // Ưu tiên lấy thông tin rating từ rating_info nếu có
+                    if (jsonResponse.has("rating_info")) {
+                        org.json.JSONObject ratingInfo = jsonResponse.getJSONObject("rating_info");
+                        if (ratingInfo.has("average_rating")) {
+                            avgRating = ratingInfo.getDouble("average_rating");
+                            System.out.println("Lấy điểm đánh giá từ server: " + avgRating);
+                        }
+                        if (ratingInfo.has("review_count")) {
+                            reviewCount = ratingInfo.getInt("review_count");
+                            System.out.println("Lấy số lượng đánh giá từ server: " + reviewCount);
+                        }
+                    } else {
+                        // Nếu không có rating_info, tính toán từ reviews
+                        System.out.println("Không có rating_info từ server, tính toán từ reviews");
+                        double totalRating = 0.0;
+                        if (reviewCount > 0) {
+                            for (int i = 0; i < reviewCount; i++) {
+                                org.json.JSONObject review = reviewsArray.getJSONObject(i);
+                                totalRating += review.getInt("rating");
+                            }
+                            avgRating = totalRating / reviewCount;
+                        }
+                    }
+                    
+                    // Tạo thông tin sản phẩm định dạng mới để xử lý
+                    StringBuilder formattedInfo = new StringBuilder();
+                    formattedInfo.append("PRODUCT_ID:").append(productId).append("\n");
+                    formattedInfo.append("PRODUCT_URL:").append(productUrl).append("\n");
+                    formattedInfo.append("TÊN SẢN PHẨM:").append(productName).append("\n");
+                    formattedInfo.append("GIÁ:").append(productPrice).append("\n");
+                    formattedInfo.append("HÌNH ẢNH:").append(productImage).append("\n");
+                    formattedInfo.append("SỐ LƯỢNG ĐÁNH GIÁ:").append(reviewCount).append("\n");
+                    formattedInfo.append("ĐIỂM ĐÁNH GIÁ TRUNG BÌNH:").append(avgRating).append("\n");
+                    // Xử lý thông tin phân trang, sử dụng optInt để tránh lỗi khi không tìm thấy
+                    int totalPages = jsonResponse.optInt("total_pages", 1);
+                    int currentPage = jsonResponse.optInt("current_page", 1);
+                    
+                    // Đảm bảo có ít nhất 1 trang
+                    if (totalPages < 1) totalPages = 1;
+                    if (currentPage < 1) currentPage = 1;
+                    
+                    // Tính lại số trang nếu có nhiều review nhưng chỉ có 1 trang (vấn đề với Điện Máy Xanh)
+                    if (totalPages == 1 && reviewCount > 20) {
+                        totalPages = (int) Math.ceil(reviewCount / 20.0);
+                        System.out.println("Tính lại số trang từ reviewCount: " + totalPages);
+                    }
+                    
+                    formattedInfo.append("TOTAL_PAGES:").append(totalPages).append("\n");
+                    formattedInfo.append("CURRENT_PAGE:").append(currentPage).append("\n");
+                    formattedInfo.append("--- ĐÁNH GIÁ SẢN PHẨM ---\n");
+                    
+                    // Thêm các đánh giá từ mảng JSON
+                    for (int i = 0; i < reviewsArray.length(); i++) {
+                        org.json.JSONObject review = reviewsArray.getJSONObject(i);
+                        formattedInfo.append("REVIEWER:").append(review.getString("reviewer_name")).append("\n");
+                        formattedInfo.append("CONTENT:").append(review.getString("content")).append("\n");
+                        formattedInfo.append("RATING:").append(review.getInt("rating")).append("\n");
+                        formattedInfo.append("TIME:").append(review.getString("time")).append("\n");
+                        // Xử lý mảng hình ảnh nếu có
+                        try {
+                            if (review.has("images") && !review.isNull("images")) {
+                                org.json.JSONArray images = review.getJSONArray("images");
+                                if (images.length() > 0 && !images.isNull(0)) {
+                                    // Kiểm tra cấu trúc của phần tử đầu tiên trong mảng
+                                    Object firstImage = images.get(0);
+                                    String imageUrl = "";
+                                    
+                                    if (firstImage instanceof String) {
+                                        // Nếu là chuỗi, sử dụng trực tiếp
+                                        imageUrl = (String) firstImage;
+                                    } else if (firstImage instanceof org.json.JSONObject) {
+                                        // Nếu là đối tượng JSON, tìm kiếm thuộc tính URL trong đó
+                                        org.json.JSONObject imgObj = (org.json.JSONObject) firstImage;
+                                        if (imgObj.has("full_path")) {
+                                            imageUrl = imgObj.getString("full_path");
+                                        } else if (imgObj.has("url")) {
+                                            imageUrl = imgObj.getString("url");
+                                        }
+                                    }
+                                    
+                                    formattedInfo.append("IMAGE:").append(imageUrl).append("\n");
+                                } else {
+                                    formattedInfo.append("IMAGE:").append("\n");
+                                }
+                            } else {
+                                formattedInfo.append("IMAGE:").append("\n");
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Lỗi khi xử lý hình ảnh đánh giá: " + e.getMessage());
+                            formattedInfo.append("IMAGE:").append("\n");
+                        }
+                        formattedInfo.append("VIDEO:").append("\n");
+                    }
+                    
+                    // Phân tích định dạng mới
+                    parseProductInfoNewFormat(formattedInfo.toString());
+                    return;
+                }
+            }
+        } catch (Exception jsonEx) {
+            System.err.println("Lỗi khi phân tích JSON: " + jsonEx.getMessage());
+            jsonEx.printStackTrace();
+        }
+        
+        // Nếu không phân tích được JSON, hiển thị thông báo lỗi
         JOptionPane.showMessageDialog(this, allMessages.toString(), "Lỗi", JOptionPane.ERROR_MESSAGE);
     }
     
@@ -730,6 +953,10 @@ public class ProductReviewGUI extends JFrame {
             currentPage = 1;
             totalPages = 1;
             
+            // Biến để lưu trữ thông tin phân trang
+            int parsedTotalPages = 0;
+            int parsedCurrentPage = 0;
+            
             // Đọc từng dòng dữ liệu
             for (String line : lines) {
                 line = line.trim();
@@ -743,6 +970,8 @@ public class ProductReviewGUI extends JFrame {
                     productPrice = line.substring(4).trim();
                 } else if (line.startsWith("HÌNH ẢNH SẢN PHẨM:")) {
                     productImage = line.substring(18).trim();
+                } else if (line.startsWith("HÌNH ẢNH:")) {
+                    productImage = line.substring(9).trim();
                 } else if (line.startsWith("SỐ LƯỢNG ĐÁNH GIÁ:")) {
                     try {
                         reviewCount = Integer.parseInt(line.substring(18).trim());
@@ -940,21 +1169,83 @@ public class ProductReviewGUI extends JFrame {
      */
     private ImageIcon loadAndScaleImage(String imageUrl, int width, int height) {
         try {
-            if (imageUrl != null && !imageUrl.isEmpty()) {
-                // Tải hình ảnh từ URL
-                URL url = new URL(imageUrl);
-                Image image = ImageIO.read(url);
+            if (imageUrl == null || imageUrl.isEmpty()) {
+                System.err.println("URL hình ảnh rỗng hoặc null");
+                return null;
+            }
+
+            // ===== Xử lý URL trước khi tải =====
+            System.out.println("URL ảnh đánh giá gốc: " + imageUrl);
+            
+            // Đảm bảo URL hình ảnh có giao thức
+            if (imageUrl.startsWith("//")) {
+                imageUrl = "https:" + imageUrl;
+                System.out.println("Đã thêm https: " + imageUrl);
+            }
+            
+            // Loại bỏ phần xử lý ảnh từ TGDD trong URL (nếu có)
+            if (imageUrl.contains("/imgt/") || imageUrl.contains("img.tgdd.vn")) {
+                int cdnIndex = imageUrl.indexOf("https://cdn.tgdd.vn");
+                if (cdnIndex > 0) {
+                    imageUrl = imageUrl.substring(cdnIndex);
+                    System.out.println("Đã loại bỏ phần xử lý ảnh: " + imageUrl);
+                }
+            }
+            
+            // Đảm bảo URL có đủ phần HTTP cho java.net.URL parse
+            if (!imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) {
+                imageUrl = "https:" + imageUrl;
+                System.out.println("Đã thêm protocol HTTPS: " + imageUrl);
+            }
+            
+            // Nếu URL chứa ký tự không hợp lệ, encode URL
+            if (imageUrl.contains(" ")) {
+                imageUrl = imageUrl.replace(" ", "%20");
+                System.out.println("Đã encode ký tự space: " + imageUrl);
+            }
+            
+            System.out.println("URL ảnh đánh giá đã xử lý: " + imageUrl);
+            
+            // ===== Tải ảnh với timeout =====
+            URL url = new URL(imageUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            
+            // Thiết lập User-Agent để tránh bị chặn
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(10000);
+            
+            // Mở connection
+            connection.connect();
+            
+            // Kiểm tra response code
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                System.err.println("Lỗi HTTP khi tải ảnh đánh giá: " + responseCode);
+                return null;
+            }
+            
+            // Đọc ảnh từ InputStream
+            try (InputStream in = connection.getInputStream()) {
+                Image image = ImageIO.read(in);
                 
                 if (image != null) {
                     // Co giãn hình ảnh để vừa với kích thước chỉ định
                     Image scaledImage = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+                    System.out.println("Đã tải và co giãn ảnh đánh giá thành công");
                     return new ImageIcon(scaledImage);
+                } else {
+                    System.err.println("ImageIO.read trả về null cho URL: " + imageUrl);
                 }
             }
         } catch (Exception e) {
-            System.err.println("Lỗi tải hình ảnh từ URL " + imageUrl + ": " + e.getMessage());
+            System.err.println("Lỗi tải hình ảnh đánh giá từ URL " + imageUrl + ": " + e.getMessage());
+            e.printStackTrace();
         }
-        return null;
+        
+        // Trả về biểu tượng mặc định nếu không thể tải ảnh
+        System.out.println("Sử dụng biểu tượng mặc định thay thế");
+        return new ImageIcon(new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB));
     }
     
     /**
@@ -1180,10 +1471,59 @@ public class ProductReviewGUI extends JFrame {
             return;
         }
         
+        // Nếu hiển thị Điện Máy Xanh và có URL sản phẩm, thì thử lấy thông tin rating chính xác từ trang web
+        if (currentPlatform.equals("ĐIỆN MÁY XANH") && platformData.productId != null && !platformData.productId.isEmpty()) {
+            try {
+                // Tạo URL để truy cập trang sản phẩm
+                String productUrl;
+                if (platformData.productId.startsWith("http")) {
+                    productUrl = platformData.productId;
+                } else {
+                    productUrl = "https://www.dienmayxanh.com" + platformData.productId;
+                }
+                
+                // Gửi request để lấy thông tin chính xác về rating
+                String response = client.getProductRatingInfo(productUrl);
+                
+                // Phân tích response
+                if (response != null && !response.isEmpty() && !response.startsWith("Lỗi")) {
+                    // Response có định dạng: "average_rating:4.5|total_reviews:123"
+                    String[] parts = response.split("\\|");
+                    if (parts.length >= 2) {
+                        String avgRatingStr = parts[0].split(":")[1];
+                        String reviewCountStr = parts[1].split(":")[1];
+                        
+                        try {
+                            double newAvgRating = Double.parseDouble(avgRatingStr);
+                            int newReviewCount = Integer.parseInt(reviewCountStr);
+                            
+                            // Cập nhật thông tin trong platformData
+                            platformData.avgRating = newAvgRating;
+                            platformData.reviewCount = newReviewCount;
+                            
+                            System.out.println("Đã cập nhật thông tin đánh giá từ server: Đánh giá trung bình=" + 
+                                newAvgRating + ", Số đánh giá=" + newReviewCount);
+                        } catch (NumberFormatException e) {
+                            System.err.println("Không thể phân tích thông tin đánh giá: " + e.getMessage());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Lỗi khi lấy thông tin đánh giá từ server: " + e.getMessage());
+            }
+        }
+        
         // Hiển thị thông tin tổng quan với định dạng số thập phân cho đánh giá
         String formattedRating = String.format("%.1f", platformData.avgRating); // Hiển thị 1 chữ số thập phân
-        lblOverView.setText("Sản phẩm: " + platformData.productName + " | Giá: " + platformData.productPrice + " VNĐ | Số đánh giá: " 
-            + platformData.reviewCount + " | Đánh giá trung bình: " + formattedRating + "/5");
+        String formattedPrice = platformData.productPrice;
+        
+        // Nếu giá không kết thúc bằng "VNĐ" hoặc "đ", thêm " VNĐ"
+        if (!formattedPrice.endsWith("VNĐ") && !formattedPrice.endsWith("đ") && !formattedPrice.endsWith("Đ")) {
+            formattedPrice += " VNĐ";
+        }
+        
+        lblOverView.setText("Sản phẩm: " + platformData.productName + " | Giá: " + formattedPrice + 
+            " | Số đánh giá: " + platformData.reviewCount + " | Đánh giá trung bình: " + formattedRating + "/5");
     }
     
     /**

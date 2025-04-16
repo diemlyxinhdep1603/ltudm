@@ -14,11 +14,13 @@ public class ProductReviewServer {
     private int port;
     private int udpPort = 9876; // Port for UDP broadcasting
     private getReviewTIKIProduct tiki;
+    private getReviewDMXProduct dmx;
     private String currentPlatform;
 
     public ProductReviewServer(int port) {
         this.port = port;
         this.tiki = new getReviewTIKIProduct();
+        this.dmx = new getReviewDMXProduct();
         this.currentPlatform = "TIKI";
     }
     public void push_IP() {
@@ -98,7 +100,8 @@ public class ProductReviewServer {
 
                 if (request.startsWith("PLATFORM:")) {
                     String platform = request.substring(9).trim();
-                    if (Valid_Input_Data.isValidPlatform(platform)) {
+                    // Kiểm tra và chấp nhận "ĐIỆN MÁY XANH" như một nền tảng hợp lệ
+                    if (platform.equals("ĐIỆN MÁY XANH") || Valid_Input_Data.isValidPlatform(platform)) {
                         currentPlatform = platform;
                         writer.println("Đã chuyển sang nền tảng: " + currentPlatform);
                         writer.println("<END>");
@@ -106,7 +109,7 @@ public class ProductReviewServer {
                     } else {
                         String errorMessage = Valid_Input_Data.getLastErrorMessage();
                         if (errorMessage.isEmpty()) {
-                            errorMessage = "Nền tảng không hợp lệ. Chỉ chấp nhận TIKI, SENDO, AMAZON";
+                            errorMessage = "Nền tảng không hợp lệ. Chỉ chấp nhận TIKI, ĐIỆN MÁY XANH, SENDO, AMAZON";
                         }
                         writer.println("Lỗi: " + errorMessage);
                         writer.println("<END>");
@@ -125,6 +128,10 @@ public class ProductReviewServer {
                         String response;
                         if (currentPlatform.equals("TIKI")) {
                             response = tiki.getProductReviewsWithPagination(productId, page);
+                        } else if (currentPlatform.equals("ĐIỆN MÁY XANH")) {
+                            // Sử dụng phương thức lazy loading mới từ class getFullReviewsUtilDMX
+                            getFullReviewsUtilDMX dmxLazy = new getFullReviewsUtilDMX(dmx);
+                            response = dmxLazy.getReviewsWithLazyLoading(productId, page);
                         } else {
                             response = "Lỗi: Chức năng tải thêm đánh giá chưa được hỗ trợ cho nền tảng " + currentPlatform;
                         }
@@ -151,6 +158,29 @@ public class ProductReviewServer {
                         writer.println("<END>");
                         continue;
                     }
+                }
+                
+                // Xử lý yêu cầu lấy thông tin đánh giá chính xác từ trang sản phẩm Điện Máy Xanh
+                if (request.startsWith("GET_RATING_INFO:")) {
+                    String productUrl = request.substring(15).trim();
+                    System.out.println("Yêu cầu lấy thông tin đánh giá từ URL: " + productUrl);
+                    
+                    try {
+                        // Chỉ hỗ trợ cho Điện Máy Xanh
+                        if (productUrl.contains("dienmayxanh.com") || productUrl.contains("diemmayxanh.com")) {
+                            String ratingInfo = dmx.getProductRatingInfo(productUrl);
+                            System.out.println("Đã lấy được thông tin đánh giá: " + ratingInfo);
+                            writer.println(ratingInfo);
+                        } else {
+                            writer.println("Lỗi: URL không được hỗ trợ. Chỉ hỗ trợ URL từ dienmayxanh.com");
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Lỗi khi lấy thông tin đánh giá: " + e.getMessage());
+                        writer.println("Lỗi: " + e.getMessage());
+                    }
+                    
+                    writer.println("<END>");
+                    continue;
                 }
                 
                 // Xử lý yêu cầu lazy loading
@@ -287,7 +317,93 @@ public class ProductReviewServer {
 
 
     private String processDMXProductRequest(String productName) {
-        return "Lỗi: Đang phát triển chức năng tìm kiếm trên SENDO";
+        try {
+            // Kiểm tra nếu yêu cầu là để tổng hợp bằng AI - tương tự như TIKI
+            if (productName.startsWith("SUMMARIZE:")) {
+                String actualProductName = productName.substring(10);
+                return processDMXProductSummarize(actualProductName);
+            }
+            
+            // Kiểm tra nếu yêu cầu là để tải trang bình luận cụ thể
+            if (productName.startsWith("LOAD_PAGE:")) {
+                String[] parts = productName.substring(10).split(":");
+                String productId = parts[0];
+                int page = Integer.parseInt(parts[1]);
+                return dmx.getProductReviewsByPage(productId, page);
+            }
+            
+            // Yêu cầu thông thường - chỉ trả về thông tin sản phẩm và trang đầu tiên của bình luận
+            String productReviews = dmx.getProductReviewsFirstPage(productName);
+            
+            // Xử lý trường hợp không tìm thấy sản phẩm, giống như TIKI
+            if (productReviews.contains("Không tìm thấy sản phẩm")) {
+                Map<String, String> suggestions = dmx.getSuggestedProducts(productName);
+                if (!suggestions.isEmpty()) {
+                    String firstSuggestion = suggestions.keySet().iterator().next();
+                    System.out.println("Sử dụng gợi ý từ Điện Máy Xanh: " + firstSuggestion);
+                    // Gửi URL gợi ý để lấy đánh giá
+                    String suggestionUrl = suggestions.get(firstSuggestion);
+                    if (suggestionUrl != null && !suggestionUrl.isEmpty()) {
+                        return dmx.getProductReviewsWithPagination(suggestionUrl, 1);
+                    } else {
+                        return "Không tìm thấy sản phẩm nào cho từ khóa: " + productName;
+                    }
+                } else {
+                    return "Không tìm thấy sản phẩm nào cho từ khóa: " + productName;
+                }
+            }
+            
+            return productReviews;
+        } catch (Exception e) {
+            System.err.println("Lỗi xử lý yêu cầu Điện Máy Xanh: " + e.getMessage());
+            e.printStackTrace();
+            return "Lỗi: Không thể lấy đánh giá từ Điện Máy Xanh - " + e.getMessage();
+        }
+    }
+    
+    // Phương thức riêng để xử lý yêu cầu tổng hợp đánh giá Điện Máy Xanh bằng AI
+    private String processDMXProductSummarize(String productName) {
+        try {
+            // Thu thập tất cả đánh giá từ DMX
+            StringBuilder allReviews = new StringBuilder();
+            
+            // Tìm URL sản phẩm
+            String productUrl = dmx.findProductUrl(productName);
+            if (productUrl == null) {
+                return "Không thể tìm thấy sản phẩm để tổng hợp đánh giá";
+            }
+            
+            // Lấy tổng số trang
+            int totalPages = dmx.getTotalReviewPages(productUrl);
+            
+            // Thu thập đánh giá từ tất cả các trang (giới hạn 3 trang để tránh quá tải)
+            int pagesToFetch = Math.min(totalPages, 3);
+            for (int page = 1; page <= pagesToFetch; page++) {
+                // Sử dụng JSONArray để lấy dữ liệu đánh giá từ trang hiện tại
+                org.json.JSONArray reviews = dmx.getProductReviews(productUrl, page);
+                
+                // Tích hợp nội dung đánh giá vào chuỗi
+                for (int i = 0; i < reviews.length(); i++) {
+                    org.json.JSONObject review = reviews.getJSONObject(i);
+                    allReviews.append(review.getString("content")).append("\n\n");
+                }
+            }
+            
+            // Kiểm tra xem có đánh giá nào không
+            if (allReviews.length() == 0) {
+                return "Không có đánh giá nào để tổng hợp.";
+            }
+            
+            // Gọi AI để tổng hợp đánh giá
+            AIReviewSummarizer summarizer = new AIReviewSummarizer();
+            String summary = summarizer.summarizeReviews(allReviews.toString());
+            
+            return summary;
+        } catch (Exception e) {
+            System.err.println("Lỗi khi tổng hợp đánh giá Điện Máy Xanh: " + e.getMessage());
+            e.printStackTrace();
+            return "Lỗi: Không thể tổng hợp đánh giá - " + e.getMessage();
+        }
     }
 
 

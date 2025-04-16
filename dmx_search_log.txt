@@ -1,0 +1,136 @@
+
+===== BẮT ĐẦU GHI LOG - 2025-04-17 06:17:16 =====
+Bắt đầu khởi tạo Playwright...
+Đã tạo Playwright instance
+Đã khởi tạo trình duyệt WebKit
+Đã tạo browser context
+Bắt đầu tìm kiếm sản phẩm: panasonic
+Đang truy cập URL tìm kiếm: https://www.dienmayxanh.com/search?key=panasonic
+Trang đã load xong
+Đã lưu screenshot vào dmx_search_page.png
+Đã lưu HTML vào dmx_search_html.html
+Tìm thấy 15 sản phẩm với selector '.item a.main-contain'
+Đã chạy evaluateAll với href, kết quả: [/may-giat/panasonic-10-kg-na-f100a9brv, /may-giat/panasonic-82-kg-na-f82y01drv, /may-giat/panasonic-85-kg-na-f85a9brv, /may-giat/panasonic-9-kg-na-f90a9brv, /may-giat/may-giat-panasonic-inverter-13-5-kg-na-fd135x3bv, /may-giat/may-giat-panasonic-inverter-10-5-kg-na-fd105x3bv, /may-giat/may-giat-panasonic-inverter-12-5-kg-na-fd125x3bv, /may-giat/panasonic-na-fd11ar1bv, /tu-lanh/tu-lanh-panasonic-325-lit-nr-bc361vgmv, /tu-lanh/panasonic-nr-bx471gpkv, /may-giat/may-giat-panasonic-inverter-115-kg-na-fd115v3bv, /may-giat/panasonic-95kg-na-fd95x1lrv, /tu-lanh/panasonic-nr-ba190ppvn, /tu-lanh/tu-lanh-panasonic-325-lit-nr-bv361wgkv, /may-lanh/panasonic-inverter-1-hp-cu-cs-xu9bkh-8]
+Đã chạy evaluateAll với title, kết quả: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+Sản phẩm (từ link): panasonic 10 kg na f100a9brv - Link: /may-giat/panasonic-10-kg-na-f100a9brv
+Sản phẩm (từ link): panasonic 82 kg na f82y01drv - Link: /may-giat/panasonic-82-kg-na-f82y01drv
+Sản phẩm (từ link): panasonic 85 kg na f85a9brv - Link: /may-giat/panasonic-85-kg-na-f85a9brv
+Sản phẩm (từ link): panasonic 9 kg na f90a9brv - Link: /may-giat/panasonic-9-kg-na-f90a9brv
+Sản phẩm (từ link): may giat panasonic inverter 13 5 kg na fd135x3bv - Link: /may-giat/may-giat-panasonic-inverter-13-5-kg-na-fd135x3bv
+Sản phẩm (từ link): may giat panasonic inverter 10 5 kg na fd105x3bv - Link: /may-giat/may-giat-panasonic-inverter-10-5-kg-na-fd105x3bv
+Sản phẩm (từ link): may giat panasonic inverter 12 5 kg na fd125x3bv - Link: /may-giat/may-giat-panasonic-inverter-12-5-kg-na-fd125x3bv
+Sản phẩm (từ link): panasonic na fd11ar1bv - Link: /may-giat/panasonic-na-fd11ar1bv
+Sản phẩm (từ link): tu lanh panasonic 325 lit nr bc361vgmv - Link: /tu-lanh/tu-lanh-panasonic-325-lit-nr-bc361vgmv
+Sản phẩm (từ link): panasonic nr bx471gpkv - Link: /tu-lanh/panasonic-nr-bx471gpkv
+Sản phẩm (từ link): may giat panasonic inverter 115 kg na fd115v3bv - Link: /may-giat/may-giat-panasonic-inverter-115-kg-na-fd115v3bv
+Sản phẩm (từ link): panasonic 95kg na fd95x1lrv - Link: /may-giat/panasonic-95kg-na-fd95x1lrv
+Sản phẩm (từ link): panasonic nr ba190ppvn - Link: /tu-lanh/panasonic-nr-ba190ppvn
+Sản phẩm (từ link): tu lanh panasonic 325 lit nr bv361wgkv - Link: /tu-lanh/tu-lanh-panasonic-325-lit-nr-bv361wgkv
+Sản phẩm (từ link): panasonic inverter 1 hp cu cs xu9bkh 8 - Link: /may-lanh/panasonic-inverter-1-hp-cu-cs-xu9bkh-8
+So sánh: 'panasonic' với 'panasonic 10 kg na f100a9brv' - Điểm: 90
+So sánh: 'panasonic' với 'panasonic 82 kg na f82y01drv' - Điểm: 90
+So sánh: 'panasonic' với 'panasonic 85 kg na f85a9brv' - Điểm: 90
+So sánh: 'panasonic' với 'panasonic 9 kg na f90a9brv' - Điểm: 90
+So sánh: 'panasonic' với 'may giat panasonic inverter 13 5 kg na fd135x3bv' - Điểm: 90
+So sánh: 'panasonic' với 'may giat panasonic inverter 10 5 kg na fd105x3bv' - Điểm: 90
+So sánh: 'panasonic' với 'may giat panasonic inverter 12 5 kg na fd125x3bv' - Điểm: 90
+So sánh: 'panasonic' với 'panasonic na fd11ar1bv' - Điểm: 90
+So sánh: 'panasonic' với 'tu lanh panasonic 325 lit nr bc361vgmv' - Điểm: 90
+So sánh: 'panasonic' với 'panasonic nr bx471gpkv' - Điểm: 90
+So sánh: 'panasonic' với 'may giat panasonic inverter 115 kg na fd115v3bv' - Điểm: 90
+So sánh: 'panasonic' với 'panasonic 95kg na fd95x1lrv' - Điểm: 90
+So sánh: 'panasonic' với 'panasonic nr ba190ppvn' - Điểm: 90
+So sánh: 'panasonic' với 'tu lanh panasonic 325 lit nr bv361wgkv' - Điểm: 90
+So sánh: 'panasonic' với 'panasonic inverter 1 hp cu cs xu9bkh 8' - Điểm: 90
+Tên sản phẩm gần đúng nhất: panasonic 10 kg na f100a9brv (điểm: 90)
+URL sản phẩm: https://www.dienmayxanh.com/may-giat/panasonic-10-kg-na-f100a9brv
+Bắt đầu tìm kiếm sản phẩm: - Máy không có tính năng khoá an toàn.
+Đang truy cập URL tìm kiếm: https://www.dienmayxanh.com/search?key=-+Máy+không+có+tính+năng+khoá+an+toàn.
+Trang đã load xong
+Đã lưu screenshot vào dmx_search_page.png
+Đã lưu HTML vào dmx_search_html.html
+Tìm thấy 0 sản phẩm với selector '.item a.main-contain'
+Không tìm thấy sản phẩm nào với selector '.item a.main-contain'
+Tìm thấy 1 phần tử với selector '.item'
+Tìm thấy 0 phần tử với selector 'a.main-contain'
+Thử với selector thay thế: Tìm thấy 0 phần tử với selector 'a[href*=/p/]'
+Không tìm thấy sản phẩm nào cho từ khóa: - Máy không có tính năng khoá an toàn.
+Bắt đầu tìm kiếm sản phẩm: - Đmx cho hỏi sao máy này bảo hành động cơ có 2 năm Trong khi các loại khác ít nhất 10 năm
+Đang truy cập URL tìm kiếm: https://www.dienmayxanh.com/search?key=-+Đmx+cho+hỏi+sao+máy+này+bảo+hành+động+cơ+có+2+năm+Trong+khi+các+loại+khác+ít+nhất+10+năm
+Trang đã load xong
+Đã lưu screenshot vào dmx_search_page.png
+Đã lưu HTML vào dmx_search_html.html
+Tìm thấy 0 sản phẩm với selector '.item a.main-contain'
+Không tìm thấy sản phẩm nào với selector '.item a.main-contain'
+Tìm thấy 1 phần tử với selector '.item'
+Tìm thấy 0 phần tử với selector 'a.main-contain'
+Thử với selector thay thế: Tìm thấy 0 phần tử với selector 'a[href*=/p/]'
+Không tìm thấy sản phẩm nào cho từ khóa: - Đmx cho hỏi sao máy này bảo hành động cơ có 2 năm Trong khi các loại khác ít nhất 10 năm
+Bắt đầu tìm kiếm sản phẩm: - Sản phẩm tốt, máy êm.
+Đang truy cập URL tìm kiếm: https://www.dienmayxanh.com/search?key=-+Sản+phẩm+tốt,+máy+êm.
+Trang đã load xong
+Đã lưu screenshot vào dmx_search_page.png
+Đã lưu HTML vào dmx_search_html.html
+Tìm thấy 0 sản phẩm với selector '.item a.main-contain'
+Không tìm thấy sản phẩm nào với selector '.item a.main-contain'
+Tìm thấy 1 phần tử với selector '.item'
+Tìm thấy 0 phần tử với selector 'a.main-contain'
+Thử với selector thay thế: Tìm thấy 0 phần tử với selector 'a[href*=/p/]'
+Không tìm thấy sản phẩm nào cho từ khóa: - Sản phẩm tốt, máy êm.
+Bắt đầu tìm kiếm sản phẩm: - Minh rất hài lòng về may giặt panasonic,máy giặt rất sạch,thiết kế máy đẹp,gọn.
+Đang truy cập URL tìm kiếm: https://www.dienmayxanh.com/search?key=-+Minh+rất+hài+lòng+về+may+giặt+panasonic,máy+giặt+rất+sạch,thiết+kế+máy+đẹp,gọn.
+Trang đã load xong
+Đã lưu screenshot vào dmx_search_page.png
+Đã lưu HTML vào dmx_search_html.html
+Tìm thấy 0 sản phẩm với selector '.item a.main-contain'
+Không tìm thấy sản phẩm nào với selector '.item a.main-contain'
+Tìm thấy 1 phần tử với selector '.item'
+Tìm thấy 0 phần tử với selector 'a.main-contain'
+Thử với selector thay thế: Tìm thấy 0 phần tử với selector 'a[href*=/p/]'
+Không tìm thấy sản phẩm nào cho từ khóa: - Minh rất hài lòng về may giặt panasonic,máy giặt rất sạch,thiết kế máy đẹp,gọn.
+Bắt đầu tìm kiếm sản phẩm: - Máy giặt sạch và chạy êm mình rất hài lòng về .Tks Điện Máy Xanh
+Đang truy cập URL tìm kiếm: https://www.dienmayxanh.com/search?key=-+Máy+giặt+sạch+và+chạy+êm+mình+rất+hài+lòng+về+.Tks+Điện+Máy+Xanh
+Trang đã load xong
+Đã lưu screenshot vào dmx_search_page.png
+Đã lưu HTML vào dmx_search_html.html
+Tìm thấy 0 sản phẩm với selector '.item a.main-contain'
+Không tìm thấy sản phẩm nào với selector '.item a.main-contain'
+Tìm thấy 1 phần tử với selector '.item'
+Tìm thấy 0 phần tử với selector 'a.main-contain'
+Thử với selector thay thế: Tìm thấy 0 phần tử với selector 'a[href*=/p/]'
+Không tìm thấy sản phẩm nào cho từ khóa: - Máy giặt sạch và chạy êm mình rất hài lòng về .Tks Điện Máy Xanh
+Bắt đầu tìm kiếm sản phẩm: - Máy tốt ,chạy êm ,giặt sạch,giá hợp lý
+Đang truy cập URL tìm kiếm: https://www.dienmayxanh.com/search?key=-+Máy+tốt+,chạy+êm+,giặt+sạch,giá+hợp+lý
+Trang đã load xong
+Đã lưu screenshot vào dmx_search_page.png
+Đã lưu HTML vào dmx_search_html.html
+Tìm thấy 0 sản phẩm với selector '.item a.main-contain'
+Không tìm thấy sản phẩm nào với selector '.item a.main-contain'
+Tìm thấy 1 phần tử với selector '.item'
+Tìm thấy 0 phần tử với selector 'a.main-contain'
+Thử với selector thay thế: Tìm thấy 0 phần tử với selector 'a[href*=/p/]'
+Không tìm thấy sản phẩm nào cho từ khóa: - Máy tốt ,chạy êm ,giặt sạch,giá hợp lý
+Bắt đầu tìm kiếm sản phẩm: - Qua sử dụng máy giặt điện máy xanh tôi thấy rất tốt. Quần áo sạch.
+Đang truy cập URL tìm kiếm: https://www.dienmayxanh.com/search?key=-+Qua+sử+dụng+máy+giặt+điện+máy+xanh+tôi+thấy+rất+tốt.+Quần+áo+sạch.
+Trang đã load xong
+Đã lưu screenshot vào dmx_search_page.png
+Đã lưu HTML vào dmx_search_html.html
+Tìm thấy 0 sản phẩm với selector '.item a.main-contain'
+Không tìm thấy sản phẩm nào với selector '.item a.main-contain'
+Tìm thấy 1 phần tử với selector '.item'
+Tìm thấy 0 phần tử với selector 'a.main-contain'
+Thử với selector thay thế: Tìm thấy 0 phần tử với selector 'a[href*=/p/]'
+Không tìm thấy sản phẩm nào cho từ khóa: - Qua sử dụng máy giặt điện máy xanh tôi thấy rất tốt. Quần áo sạch.
+Bắt đầu tìm kiếm sản phẩm: - Quá tuyệt vời
+Đang truy cập URL tìm kiếm: https://www.dienmayxanh.com/search?key=-+Quá+tuyệt+vời
+Trang đã load xong
+Đã lưu screenshot vào dmx_search_page.png
+Đã lưu HTML vào dmx_search_html.html
+Tìm thấy 0 sản phẩm với selector '.item a.main-contain'
+Không tìm thấy sản phẩm nào với selector '.item a.main-contain'
+Tìm thấy 1 phần tử với selector '.item'
+Tìm thấy 0 phần tử với selector 'a.main-contain'
+Thử với selector thay thế: Tìm thấy 0 phần tử với selector 'a[href*=/p/]'
+Không tìm thấy sản phẩm nào cho từ khóa: - Quá tuyệt vời
+Bắt đầu tìm kiếm sản phẩm: - SP rất tốt
+Đang truy cập URL tìm kiếm: https://www.dienmayxanh.com/search?key=-+SP+rất+tốt
