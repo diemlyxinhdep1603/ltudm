@@ -451,7 +451,7 @@ public class getReviewTIKIProduct {
                 }
             }
             // Sử dụng các phương thức an toàn để lấy số lượng review
-            int reviewCount = allReviews.length();
+            int reviewCount = safeGetInt(productDetails,"review_count", 0);
 
             // Tính toán đánh giá trung bình
             double avgRating = calculateAverageRating(allReviews);
@@ -460,7 +460,7 @@ public class getReviewTIKIProduct {
             // Lấy đánh giá từ chi tiết sản phẩm
             double productRating = 0.0;
             if (productDetails.has("rating_average") && !productDetails.isNull("rating_average")) {
-                productRating = safeGetDouble(productDetails, "rating_average", 0.0);
+                productRating = safeGetDouble(productDetails, "rating_average",0.0);
                 System.out.println("DEBUG - Đánh giá từ API sản phẩm: " + productRating);
             }
 
@@ -603,7 +603,7 @@ public class getReviewTIKIProduct {
                     }
 
                     // Sử dụng các phương thức an toàn để lấy số lượng review
-                    int reviewCount = allReviews.length();
+                    int reviewCount = safeGetInt(productDetails,"review_count", 0);
 
                     // Tính toán đánh giá trung bình
                     double avgRating = calculateAverageRating(allReviews);

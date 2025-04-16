@@ -84,9 +84,8 @@ public class ProductReviewGUI extends JFrame {
         IPFetcher ipFetcher = new IPFetcher();
         String ip = ipFetcher.fetch_IP();
 
-        //client = new ProductReviewClient("ip", 1234);
-        // Khởi tạo client kết nối đến server
-        client = new ProductReviewClient("localhost", 1234);
+        client = new ProductReviewClient(ip, 1234);
+
         
         // Khởi tạo dữ liệu cho mỗi nền tảng
         platformDataMap.put("TIKI", new PlatformData());
@@ -469,9 +468,16 @@ public class ProductReviewGUI extends JFrame {
             
             // Cập nhật thông tin tổng quan với định dạng số thập phân cho đánh giá
             String formattedRating = String.format("%.1f", platformData.avgRating); // Hiển thị 1 chữ số thập phân
-            lblOverView.setText("Sản phẩm: " + platformData.productName + " | Giá: " + platformData.productPrice + " VNĐ | Số đánh giá: " 
-                + platformData.reviewCount + " | Đánh giá trung bình: " + formattedRating + "/5");
-            
+            String overviewText = "<html><body style='width: 780px;'>"
+                    + "Sản phẩm: " + platformData.productName + " | "
+                    + "Giá: " + platformData.productPrice + " VNĐ | "
+                    + "Số đánh giá: " + platformData.reviewCount + " | "
+                    + "Đánh giá trung bình: " + formattedRating + "/5"
+                    + "</body></html>";
+
+            lblOverView.setText(overviewText);
+
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi xử lý thông tin sản phẩm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
