@@ -9,6 +9,8 @@ import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -1566,47 +1568,38 @@ public class ProductReviewGUI extends JFrame {
             // Lấy dữ liệu của nền tảng mới được chọn
             PlatformData platformData = platformDataMap.get(currentPlatform);
             
-            // Kiểm tra xem đã có dữ liệu cached cho nền tảng này chưa
-            if (!platformData.productName.isEmpty()) {
-                // Đã có dữ liệu, hiển thị lại từ cache
-                table.setModel(platformData.tableModel);
-                displayProductImage(platformData.productImage);
-                
-                // Cập nhật thông tin tổng quan
-                String formattedRating = String.format("%.1f", platformData.avgRating);
-                lblOverView.setText("Sản phẩm: " + platformData.productName + " | Giá: " + platformData.productPrice + 
-                    " VNĐ | Số đánh giá: " + platformData.reviewCount + " | Đánh giá trung bình: " + formattedRating + "/5");
-                
-                // Đặt lại ô tìm kiếm với từ khóa đã tìm kiếm trước đó
-                if (!platformData.searchKeyword.isEmpty()) {
-                    // Đặt lại giá trị của ô tìm kiếm nhưng tránh cộng dồn giá trị
-                    textInfor.setText("");  // Xóa trước để tránh nối thêm
-                    textInfor.setText(platformData.searchKeyword);
-                }
-                
-                // Thêm renderer cho cột ảnh và video
+            // Reset dữ liệu của nền tảng mới để tránh ảnh hưởng từ dữ liệu cũ
+            platformData.productId = "";
+            platformData.productName = "";
+            platformData.productPrice = "";
+            platformData.productImage = "";
+            platformData.reviewCount = 0;
+            platformData.avgRating = 0.0;
+            platformData.searchKeyword = "";
+            platformData.tableModel.setRowCount(0); // Xóa tất cả dữ liệu trong bảng
+            
+            // Hiển thị thông báo nền tảng đã đổi
+            lblOverView.setText("Đã chuyển sang nền tảng: " + platform);
+            
+            // Cập nhật giao diện
+            table.setModel(platformData.tableModel);
+            lblProductImage.setIcon(null);
+            lblProductImage.setText("Không có hình ảnh");
+            
+            // Xóa ô tìm kiếm để người dùng tự nhập
+            textInfor.setText("");
+            
+            // Reset thông tin phân trang
+            currentPage = 1;
+            totalPages = 1;
+            updatePaginationDisplay();
+            
+            // Thêm renderer cho cột ảnh và video
+            try {
                 table.getColumnModel().getColumn(3).setCellRenderer(new ImageCellRenderer());
                 table.getColumnModel().getColumn(4).setCellRenderer(new ButtonCellRenderer());
-            } else {
-                // Chưa có dữ liệu, hiển thị thông báo nền tảng đã đổi
-                lblOverView.setText("Đã chuyển sang nền tảng: " + platform);
-                
-                // Xóa dữ liệu hiển thị
-                DefaultTableModel emptyModel = platformData.tableModel;
-                table.setModel(emptyModel);
-                lblProductImage.setIcon(null);
-                
-                // Nếu có từ khóa tìm kiếm từ nền tảng trước, tìm kiếm lại
-                String previousKeyword = platformDataMap.get(previousPlatform).searchKeyword;
-                if (!previousKeyword.isEmpty()) {
-                    // Đặt lại giá trị của ô tìm kiếm nhưng tránh cộng dồn giá trị
-                    textInfor.setText("");  // Xóa trước để tránh nối thêm
-                    textInfor.setText(previousKeyword);
-                    searchProduct();
-                } else {
-                    // Xóa ô tìm kiếm nếu không có từ khóa trước đó
-                    textInfor.setText("");
-                }
+            } catch (Exception ex) {
+                // Bỏ qua lỗi nếu bảng chưa sẵn sàng
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi khi chuyển đổi nền tảng: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -1622,6 +1615,9 @@ public class ProductReviewGUI extends JFrame {
             return;
         }
 
+        // Lưu trữ giá trị tìm kiếm hiện tại để khôi phục sau này
+        final String currentSearchText = textInfor.getText();
+
         // Hiển thị thanh tiến trình
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         
@@ -1629,10 +1625,20 @@ public class ProductReviewGUI extends JFrame {
             // Trích xuất nội dung đánh giá từ tableModel
             StringBuilder reviewText = new StringBuilder();
             DefaultTableModel model = platformData.tableModel;
-            for (int i = 0; i < model.getRowCount(); i++) {
+            
+            // Giới hạn độ dài chỉ lấy 10 đánh giá cho mỗi lần tổng hợp 
+            // để tránh vượt quá giới hạn request và đảm bảo phản hồi nhanh
+            int maxReviews = Math.min(model.getRowCount(), 10);
+            
+            for (int i = 0; i < maxReviews; i++) {
                 Object content = model.getValueAt(i, 2); // Cột 2: nội dung đánh giá
-                if (content != null) {
-                    reviewText.append("- ").append(content.toString()).append("\n");
+                if (content != null && content.toString().trim().length() > 0) {
+                    // Giới hạn độ dài mỗi đánh giá
+                    String reviewContent = content.toString();
+                    if (reviewContent.length() > 200) {
+                        reviewContent = reviewContent.substring(0, 197) + "...";
+                    }
+                    reviewText.append("- ").append(reviewContent).append(" --------\n");
                 }
             }
 
@@ -1642,39 +1648,72 @@ public class ProductReviewGUI extends JFrame {
                 return;
             }
 
-            // Kết nối đến server nếu chưa kết nối
-            if (!client.isConnected()) {
-                if (!client.connect()) {
-                    JOptionPane.showMessageDialog(this, "Không thể kết nối đến máy chủ", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
+            // Tạo một kết nối mới đến server cho yêu cầu tổng hợp
+            // để tránh ảnh hưởng đến kết nối hiện tại
+            IPFetcher ipFetcher = new IPFetcher();
+            String ip = ipFetcher.fetch_IP();
+            ProductReviewClient summaryClient = new ProductReviewClient(ip, 1234);
             
-            // Gửi yêu cầu tổng hợp đến server
-            String productId = platformData.searchKeyword; // Sử dụng từ khóa tìm kiếm làm ID sản phẩm
-            String summarizedReview = client.summarizeReviews(productId, reviewText.toString());
-            
-            // Kiểm tra kết quả
-            if (summarizedReview == null || summarizedReview.isEmpty() || 
-                summarizedReview.contains("Lỗi") || 
-                summarizedReview.contains("Không thể tổng hợp")) {
-                JOptionPane.showMessageDialog(this, "Không thể tổng hợp đánh giá: " + summarizedReview, 
-                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+            if (!summaryClient.connect()) {
+                JOptionPane.showMessageDialog(this, "Không thể kết nối đến máy chủ", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-
-            // Định dạng lại kết quả để hiển thị
-            summarizedReview = summarizedReview.replaceAll("(?m)^\\s*\\*", "-");
-            summarizedReview = summarizedReview.replace("**", "");
-
-            // Hiển thị kết quả trong một hộp thoại
-            JTextArea textArea = new JTextArea(summarizedReview);
-            textArea.setWrapStyleWord(true);
-            textArea.setLineWrap(true);
-            textArea.setEditable(false);
-            JScrollPane scrollPane = new JScrollPane(textArea);
-            scrollPane.setPreferredSize(new Dimension(600, 400));
-            JOptionPane.showMessageDialog(this, scrollPane, "Tổng hợp đánh giá", JOptionPane.INFORMATION_MESSAGE);
+            
+            try {
+                // Gửi yêu cầu tổng hợp đến server
+                String productId = platformData.productId; // Sử dụng ID sản phẩm thực tế
+                String summarizedReview = summaryClient.summarizeReviews(productId, reviewText.toString());
+                
+                // Kiểm tra kết quả
+                if (summarizedReview == null || summarizedReview.isEmpty() || 
+                    summarizedReview.contains("Lỗi") || 
+                    summarizedReview.contains("Không thể tổng hợp")) {
+                    JOptionPane.showMessageDialog(this, "Không thể tổng hợp đánh giá: " + summarizedReview, 
+                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+    
+                // Định dạng lại kết quả để hiển thị
+                summarizedReview = summarizedReview.replaceAll("(?m)^\\s*\\*", "-");
+                summarizedReview = summarizedReview.replace("**", "");
+    
+                // Hiển thị kết quả trong một hộp thoại
+                JTextArea textArea = new JTextArea(summarizedReview);
+                textArea.setWrapStyleWord(true);
+                textArea.setLineWrap(true);
+                textArea.setEditable(false);
+                textArea.setFocusable(false); // Ngăn chặn focus trên text area
+                JScrollPane scrollPane = new JScrollPane(textArea);
+                scrollPane.setPreferredSize(new Dimension(600, 400));
+                
+                // Sử dụng JOptionPane modal để tránh tương tác với GUI chính khi dialog đang hiển thị
+                JDialog dialog = new JDialog(this, "Tổng hợp đánh giá", true);
+                dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                JButton closeButton = new JButton("Đóng");
+                closeButton.addActionListener(e -> {
+                    dialog.dispose();
+                });
+                
+                JPanel buttonPanel = new JPanel();
+                buttonPanel.add(closeButton);
+                
+                dialog.setLayout(new BorderLayout());
+                dialog.add(scrollPane, BorderLayout.CENTER);
+                dialog.add(buttonPanel, BorderLayout.SOUTH);
+                dialog.setSize(650, 450);
+                dialog.setLocationRelativeTo(this);
+                
+                // Ngăn chặn các hành động trong khi dialog hiển thị
+                dialog.setModal(true);
+                dialog.setVisible(true);
+                
+                // Đóng và giải phóng tài nguyên dialog
+                dialog.dispose();
+            } finally {
+                // Đóng kết nối riêng biệt sau khi sử dụng
+                summaryClient.close();
+            }
+            
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi khi tổng hợp đánh giá: " + e.getMessage(), 
                 "Lỗi", JOptionPane.ERROR_MESSAGE);

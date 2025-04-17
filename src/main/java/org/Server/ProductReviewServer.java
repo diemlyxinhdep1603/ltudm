@@ -1,4 +1,3 @@
-
 package org.Server;
 
 import org.jsoup.Connection;
@@ -91,11 +90,43 @@ public class ProductReviewServer {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true)) {
             String request;
+            // Thêm biến để theo dõi trạng thái kết nối
+            boolean isSummarizeConnection = false;
+            
             while ((request = reader.readLine()) != null) {
                 System.out.println("Server nhận: " + request);
+                
+                // Kiểm tra nếu là yêu cầu đóng kết nối
                 if (request.equalsIgnoreCase("bye")) {
                     System.out.println("Khách hàng yêu cầu đóng kết nối.");
                     break;
+                }
+
+                // Kiểm tra nếu là kết nối tổng hợp - đánh dấu toàn bộ kết nối này dành cho tổng hợp
+                if (request.startsWith("SUMMARIZE:")) {
+                    String[] parts = request.substring(10).split(":", 2);
+                    if (parts.length == 2) {
+                        String productId = parts[0];
+                        String reviewsContent = parts[1];
+                        System.out.println("Yêu cầu tổng hợp đánh giá cho sản phẩm " + productId);
+                        
+                        // Gọi AI để tổng hợp đánh giá
+                        AIReviewSummarizer summarizer = new AIReviewSummarizer();
+                        String summary = summarizer.summarizeReviews(reviewsContent);
+                        
+                        writer.println(summary);
+                        writer.println("<END>");
+                        
+                        // Đánh dấu đây là kết nối tổng hợp để bỏ qua các yêu cầu tiếp theo
+                        isSummarizeConnection = true;
+                        continue;
+                    }
+                }
+                
+                // Nếu đã được đánh dấu là kết nối tổng hợp, bỏ qua tất cả các yêu cầu tiếp theo 
+                // ngoại trừ "bye" (đã xử lý ở trên)
+                if (isSummarizeConnection) {
+                    continue;
                 }
 
                 if (request.startsWith("PLATFORM:")) {
@@ -137,24 +168,6 @@ public class ProductReviewServer {
                         }
                         
                         writer.println(response);
-                        writer.println("<END>");
-                        continue;
-                    }
-                }
-                
-                // Xử lý yêu cầu tổng hợp đánh giá bằng AI
-                if (request.startsWith("SUMMARIZE:")) {
-                    String[] parts = request.substring(10).split(":", 2);
-                    if (parts.length == 2) {
-                        String productId = parts[0];
-                        String reviewsContent = parts[1];
-                        System.out.println("Yêu cầu tổng hợp đánh giá cho sản phẩm " + productId);
-                        
-                        // Gọi AI để tổng hợp đánh giá
-                        AIReviewSummarizer summarizer = new AIReviewSummarizer();
-                        String summary = summarizer.summarizeReviews(reviewsContent);
-                        
-                        writer.println(summary);
                         writer.println("<END>");
                         continue;
                     }
@@ -202,6 +215,7 @@ public class ProductReviewServer {
                     continue;
                 }
 
+                // Trường hợp còn lại, kiểm tra từ khóa tìm kiếm và xử lý như một yêu cầu tìm kiếm thông thường
                 if (!Valid_Input_Data.isValidKeyword(request)) {
                     String errorMessage = Valid_Input_Data.getLastErrorMessage();
                     if (errorMessage.isEmpty()) {
@@ -238,36 +252,8 @@ public class ProductReviewServer {
         }
     }
 
-    /*
     private String processTikiProductRequest(String productName) {
         try {
-            String productReviews = tiki.getProductReviews(productName);
-            if (productReviews.contains("Không tìm thấy sản phẩm")) {
-                Map<String, String> suggestions = tiki.getSuggestedProducts(productName);
-                if (!suggestions.isEmpty()) {
-                    String firstSuggestion = suggestions.keySet().iterator().next();
-                    System.out.println("Sử dụng gợi ý: " + firstSuggestion);
-                    return tiki.getProductReviewsFromSuggestion(firstSuggestion);
-                } else {
-                    return "Không tìm thấy sản phẩm nào cho từ khóa: " + productName;
-                }
-            }
-            return productReviews;
-        } catch (Exception e) {
-            System.err.println("Lỗi tìm kiếm sản phẩm: " + e.getMessage());
-            return "Lỗi: Không thể tìm kiếm sản phẩm - " + e.getMessage();
-        }
-    }
-
-     */
-    private String processTikiProductRequest(String productName) {
-        try {
-            // Kiểm tra nếu yêu cầu là để tổng hợp bằng AI
-            if (productName.startsWith("SUMMARIZE:")) {
-                String actualProductName = productName.substring(10);
-                return processTikiProductSummarize(actualProductName);
-            }
-            
             // Kiểm tra nếu yêu cầu là để tải trang bình luận cụ thể
             if (productName.startsWith("LOAD_PAGE:")) {
                 String[] parts = productName.substring(10).split(":");
@@ -296,34 +282,9 @@ public class ProductReviewServer {
             return "Lỗi: Không thể tìm kiếm sản phẩm - " + e.getMessage();
         }
     }
-    
-    // Phương thức riêng để xử lý yêu cầu tổng hợp bằng AI
-    private String processTikiProductSummarize(String productName) {
-        try {
-            String summarizedReview = tiki.summarizeReviewsWithAI(productName);
-            
-            if (summarizedReview == null || summarizedReview.isEmpty() || 
-                summarizedReview.contains("Lỗi") || 
-                summarizedReview.equals("Không có đánh giá nào để tổng hợp.")) {
-                return "Không thể tổng hợp đánh giá do thiếu dữ liệu hoặc lỗi.";
-            }
-            
-            return summarizedReview;
-        } catch (Exception e) {
-            System.err.println("Lỗi khi tổng hợp đánh giá: " + e.getMessage());
-            return "Lỗi: Không thể tổng hợp đánh giá - " + e.getMessage();
-        }
-    }
-
 
     private String processDMXProductRequest(String productName) {
         try {
-            // Kiểm tra nếu yêu cầu là để tổng hợp bằng AI - tương tự như TIKI
-            if (productName.startsWith("SUMMARIZE:")) {
-                String actualProductName = productName.substring(10);
-                return processDMXProductSummarize(actualProductName);
-            }
-            
             // Kiểm tra nếu yêu cầu là để tải trang bình luận cụ thể
             if (productName.startsWith("LOAD_PAGE:")) {
                 String[] parts = productName.substring(10).split(":");
@@ -360,53 +321,6 @@ public class ProductReviewServer {
             return "Lỗi: Không thể lấy đánh giá từ Điện Máy Xanh - " + e.getMessage();
         }
     }
-    
-    // Phương thức riêng để xử lý yêu cầu tổng hợp đánh giá Điện Máy Xanh bằng AI
-    private String processDMXProductSummarize(String productName) {
-        try {
-            // Thu thập tất cả đánh giá từ DMX
-            StringBuilder allReviews = new StringBuilder();
-            
-            // Tìm URL sản phẩm
-            String productUrl = dmx.findProductUrl(productName);
-            if (productUrl == null) {
-                return "Không thể tìm thấy sản phẩm để tổng hợp đánh giá";
-            }
-            
-            // Lấy tổng số trang
-            int totalPages = dmx.getTotalReviewPages(productUrl);
-            
-            // Thu thập đánh giá từ tất cả các trang (giới hạn 3 trang để tránh quá tải)
-            int pagesToFetch = Math.min(totalPages, 3);
-            for (int page = 1; page <= pagesToFetch; page++) {
-                // Sử dụng JSONArray để lấy dữ liệu đánh giá từ trang hiện tại
-                org.json.JSONArray reviews = dmx.getProductReviews(productUrl, page);
-                
-                // Tích hợp nội dung đánh giá vào chuỗi
-                for (int i = 0; i < reviews.length(); i++) {
-                    org.json.JSONObject review = reviews.getJSONObject(i);
-                    allReviews.append(review.getString("content")).append("\n\n");
-                }
-            }
-            
-            // Kiểm tra xem có đánh giá nào không
-            if (allReviews.length() == 0) {
-                return "Không có đánh giá nào để tổng hợp.";
-            }
-            
-            // Gọi AI để tổng hợp đánh giá
-            AIReviewSummarizer summarizer = new AIReviewSummarizer();
-            String summary = summarizer.summarizeReviews(allReviews.toString());
-            
-            return summary;
-        } catch (Exception e) {
-            System.err.println("Lỗi khi tổng hợp đánh giá Điện Máy Xanh: " + e.getMessage());
-            e.printStackTrace();
-            return "Lỗi: Không thể tổng hợp đánh giá - " + e.getMessage();
-        }
-    }
-
-
 
     public static void main(String[] args) {
         ProductReviewServer server = new ProductReviewServer(1234);
