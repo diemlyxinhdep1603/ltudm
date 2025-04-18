@@ -1,9 +1,12 @@
 package GUI;
-import Client.IPFetcher;
-import Client.ProductReviewClient;
-//import org.Server.AIReviewSummarizer;
 
 import javax.swing.*;
+//import org.Server.AIReviewSummarizer;
+
+import Client.ProductReviewClient;
+import Client.EncryptedClient;
+import Client.IPFetcher;
+
 import java.io.FileWriter;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
@@ -93,19 +96,46 @@ public class ProductReviewGUI extends JFrame {
     private JLabel lblPagination; // Label hiển thị thông tin phân trang
 
     public ProductReviewGUI() {
-       //Gọi API để lấy IP server
-        IPFetcher ipFetcher = new IPFetcher();
-        String ip = ipFetcher.fetch_IP();
-
-        client = new ProductReviewClient(ip, 1234);
-        // Khởi tạo client kết nối đến server
-    //    client = new ProductReviewClient("localhost", 1234);
-        
-        // Khởi tạo dữ liệu cho mỗi nền tảng
+        this(null); // Call the parameterized constructor with null client
+    }
+    
+    /**
+     * Constructor with custom client
+     * 
+     * @param customClient The client to use (can be encrypted or standard)
+     */
+    public ProductReviewGUI(ProductReviewClient customClient) {
+        // Khởi tạo các map cho các nền tảng
         platformDataMap.put("TIKI", new PlatformData());
         platformDataMap.put("ĐIỆN MÁY XANH", new PlatformData());
-
         
+        try {
+            // Tạo kết nối đến máy chủ
+            IPFetcher ipFetcher = new IPFetcher();
+            String ip = ipFetcher.fetch_IP();
+            
+            if (customClient != null) {
+                client = customClient;
+            } else {
+                client = new ProductReviewClient(ip, 1234);
+            }
+            
+            if (!client.connect()) {
+                JOptionPane.showMessageDialog(this, "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại sau.", "Lỗi Kết Nối", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Không thể kết nối đến máy chủ: " + e.getMessage(), "Lỗi Kết Nối", JOptionPane.ERROR_MESSAGE);
+        }
+        
+        // Cài đặt giao diện người dùng
+        initUI();
+        
+        // Hiển thị nền tảng mặc định (TIKI)
+        showPlatform("TIKI");
+    }
+    
+    private void initUI() {
         setTitle("Tổng Hợp Review Sản Phẩm");
         setSize(1333, 720);
         setMinimumSize(new Dimension(800, 600));
@@ -152,6 +182,7 @@ public class ProductReviewGUI extends JFrame {
         
         searchPanel.add(inputPanel, BorderLayout.CENTER);
         
+        // Thêm panel trên cùng vào content pane
         // Khởi tạo đối tượng gợi ý tìm kiếm
         suggestionProvider = new ProductSuggestionProvider(textInfor);
         
@@ -1626,7 +1657,7 @@ public class ProductReviewGUI extends JFrame {
             StringBuilder reviewText = new StringBuilder();
             DefaultTableModel model = platformData.tableModel;
             
-            // Giới hạn độ dài chỉ lấy 10 đánh giá cho mỗi lần tổng hợp 
+            // Giới hạn độ dài chỉ lấy 20 đánh giá cho mỗi lần tổng hợp 
             // để tránh vượt quá giới hạn request và đảm bảo phản hồi nhanh
             int maxReviews = Math.min(model.getRowCount(), 10);
             
@@ -1636,7 +1667,7 @@ public class ProductReviewGUI extends JFrame {
                     // Giới hạn độ dài mỗi đánh giá
                     String reviewContent = content.toString();
                     if (reviewContent.length() > 200) {
-                        reviewContent = reviewContent.substring(0, 197) + "...";
+                        reviewContent = reviewContent.substring(0, 397) + "...";
                     }
                     reviewText.append("- ").append(reviewContent).append(" --------\n");
                 }
@@ -1652,7 +1683,9 @@ public class ProductReviewGUI extends JFrame {
             // để tránh ảnh hưởng đến kết nối hiện tại
             IPFetcher ipFetcher = new IPFetcher();
             String ip = ipFetcher.fetch_IP();
-            ProductReviewClient summaryClient = new ProductReviewClient(ip, 1234);
+            
+            // Sử dụng EncryptedClient thay vì ProductReviewClient thông thường
+            Client.EncryptedClient summaryClient = new Client.EncryptedClient(ip, 1234);
             
             if (!summaryClient.connect()) {
                 JOptionPane.showMessageDialog(this, "Không thể kết nối đến máy chủ", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -1677,38 +1710,24 @@ public class ProductReviewGUI extends JFrame {
                 summarizedReview = summarizedReview.replaceAll("(?m)^\\s*\\*", "-");
                 summarizedReview = summarizedReview.replace("**", "");
     
-                // Hiển thị kết quả trong một hộp thoại
+                // Hiển thị kết quả trong một hộp thoại đơn giản
                 JTextArea textArea = new JTextArea(summarizedReview);
                 textArea.setWrapStyleWord(true);
                 textArea.setLineWrap(true);
                 textArea.setEditable(false);
-                textArea.setFocusable(false); // Ngăn chặn focus trên text area
+                textArea.setFont(new Font("Arial", Font.PLAIN, 14));
+                textArea.setBackground(UIManager.getColor("Panel.background"));
+                
                 JScrollPane scrollPane = new JScrollPane(textArea);
                 scrollPane.setPreferredSize(new Dimension(600, 400));
                 
-                // Sử dụng JOptionPane modal để tránh tương tác với GUI chính khi dialog đang hiển thị
-                JDialog dialog = new JDialog(this, "Tổng hợp đánh giá", true);
-                dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                JButton closeButton = new JButton("Đóng");
-                closeButton.addActionListener(e -> {
-                    dialog.dispose();
-                });
-                
-                JPanel buttonPanel = new JPanel();
-                buttonPanel.add(closeButton);
-                
-                dialog.setLayout(new BorderLayout());
-                dialog.add(scrollPane, BorderLayout.CENTER);
-                dialog.add(buttonPanel, BorderLayout.SOUTH);
-                dialog.setSize(650, 450);
-                dialog.setLocationRelativeTo(this);
-                
-                // Ngăn chặn các hành động trong khi dialog hiển thị
-                dialog.setModal(true);
-                dialog.setVisible(true);
-                
-                // Đóng và giải phóng tài nguyên dialog
-                dialog.dispose();
+                // Sử dụng JOptionPane để hiển thị kết quả
+                JOptionPane.showMessageDialog(
+                    this,
+                    scrollPane,
+                    "Tổng hợp đánh giá " + platformData.productName,
+                    JOptionPane.INFORMATION_MESSAGE
+                );
             } finally {
                 // Đóng kết nối riêng biệt sau khi sử dụng
                 summaryClient.close();

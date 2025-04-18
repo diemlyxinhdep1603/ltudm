@@ -556,6 +556,7 @@ public class getReviewDMXProduct {
             Locator reviewBlocks = browserPage.locator(".rate-view .crep");
             int count = reviewBlocks.count();
             
+            /*
             // Cách 2: Nếu không tìm thấy với selector cũ, thử selector khác
             if (count == 0) {
                 reviewBlocks = browserPage.locator(".comment-item");
@@ -576,6 +577,7 @@ public class getReviewDMXProduct {
                 count = reviewBlocks.count();
                 System.out.println("Thử lại với selector 'li.comment': Tìm thấy " + count + " đánh giá");
             }
+            */
             
             // Vẫn không tìm thấy đánh giá, thử lấy nội dung đánh giá trực tiếp
             if (count == 0) {

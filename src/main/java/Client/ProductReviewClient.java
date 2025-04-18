@@ -298,8 +298,27 @@ public class ProductReviewClient {
         return socket != null && socket.isConnected() && !socket.isClosed();
     }
 
-
-
-
-
+    /**
+     * Get the socket (protected for subclasses)
+     * @return Socket instance
+     */
+    protected Socket getParentSocket() {
+        return this.socket;
+    }
+    
+    /**
+     * Get the reader (protected for subclasses)
+     * @return BufferedReader instance
+     */
+    protected BufferedReader getParentReader() {
+        return this.reader;
+    }
+    
+    /**
+     * Get the writer (protected for subclasses)
+     * @return PrintWriter instance
+     */
+    protected PrintWriter getParentWriter() {
+        return this.writer;
+    }
 }

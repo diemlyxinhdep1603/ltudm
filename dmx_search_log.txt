@@ -1,0 +1,20 @@
+
+===== BẮT ĐẦU GHI LOG - 2025-04-18 18:23:15 =====
+Bắt đầu khởi tạo Playwright...
+Đã tạo Playwright instance
+Đã khởi tạo trình duyệt WebKit
+Đã tạo browser context
+Bắt đầu khởi tạo Playwright...
+Đã tạo Playwright instance
+Đã khởi tạo trình duyệt WebKit
+Đã tạo browser context
+
+===== BẮT ĐẦU GHI LOG - 2025-04-18 18:26:20 =====
+Bắt đầu khởi tạo Playwright...
+Đã tạo Playwright instance
+Đã khởi tạo trình duyệt WebKit
+Đã tạo browser context
+Bắt đầu khởi tạo Playwright...
+Đã tạo Playwright instance
+Đã khởi tạo trình duyệt WebKit
+Đã tạo browser context

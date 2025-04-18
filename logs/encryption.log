@@ -1,0 +1,23 @@
+[2025-04-18 18:23:29.207] [INFO] Encryption logger initialized
+[2025-04-18 18:23:29.208] [INFO] Generated RSA server key (2048 bits)
+[2025-04-18 18:23:40.252] [INFO] Decrypted: Key exchange 392 bytes using RSA+AES
+[2025-04-18 18:23:41.561] [INFO] Decrypted: Key exchange 392 bytes using RSA+AES
+[2025-04-18 18:23:46.588] [INFO] Communication with /192.168.28.159:50445: Request message, 389 bytes encrypted (26 bytes original)
+[2025-04-18 18:23:50.102] [INFO] Communication with /192.168.28.159:50445: Response message, 9433 bytes encrypted (6399 bytes original)
+[2025-04-18 18:23:54.021] [INFO] Decrypted: Key exchange 392 bytes using RSA+AES
+[2025-04-18 18:23:54.035] [INFO] Communication with /192.168.28.159:50458: Request message, 2225 bytes encrypted (1146 bytes original)
+[2025-04-18 18:23:57.444] [INFO] Communication with /192.168.28.159:50458: Response message, 2993 bytes encrypted (1502 bytes original)
+[2025-04-18 18:24:05.399] [INFO] Decrypted: Key exchange 392 bytes using RSA+AES
+[2025-04-18 18:24:05.411] [INFO] Communication with /192.168.28.159:50475: Request message, 2225 bytes encrypted (1146 bytes original)
+[2025-04-18 18:24:08.211] [INFO] Communication with /192.168.28.159:50475: Response message, 2565 bytes encrypted (1255 bytes original)
+[2025-04-18 18:24:15.156] [INFO] Decrypted: Key exchange 392 bytes using RSA+AES
+[2025-04-18 18:24:15.157] [INFO] Communication with /192.168.28.159:50498: Request message, 2225 bytes encrypted (1146 bytes original)
+[2025-04-18 18:24:17.890] [INFO] Communication with /192.168.28.159:50498: Response message, 2481 bytes encrypted (1228 bytes original)
+[2025-04-18 18:26:43.312] [INFO] Encryption logger initialized
+[2025-04-18 18:26:43.312] [INFO] Decrypted: Key exchange 392 bytes using RSA+AES
+[2025-04-18 18:26:44.617] [INFO] Decrypted: Key exchange 392 bytes using RSA+AES
+[2025-04-18 18:27:15.058] [INFO] Communication with /192.168.28.159:50677: Request message, 389 bytes encrypted (26 bytes original)
+[2025-04-18 18:27:17.051] [INFO] Communication with /192.168.28.159:50677: Response message, 9433 bytes encrypted (6399 bytes original)
+[2025-04-18 18:27:20.239] [INFO] Decrypted: Key exchange 392 bytes using RSA+AES
+[2025-04-18 18:27:20.254] [INFO] Communication with /192.168.28.159:50697: Request message, 2225 bytes encrypted (1146 bytes original)
+[2025-04-18 18:27:23.991] [INFO] Communication with /192.168.28.159:50697: Response message, 2417 bytes encrypted (1164 bytes original)

@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 public class AIReviewSummarizer {
 
     private static final String AI_STUDIO_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
-    private static final String API_KEY = "AIzaSyCCgeuh9AwVzc3AJ___OpNWgwGqDjH9UIs";
+    private static final String API_KEY = "bỏ key API gemini của google AI studio vào đây";
 
     public String summarizeReviews(String reviews) {
         // Kiểm tra tính hợp lệ của input
